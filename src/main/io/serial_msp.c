@@ -661,9 +661,6 @@ void mspInit(serialConfig_t *serialConfig)
     }
 #endif
 
-    if (masterConfig.mixerMode == MIXER_FLYING_WING || masterConfig.mixerMode == MIXER_AIRPLANE)
-        activeBoxIds[activeBoxIdCount++] = BOXPASSTHRU;
-
     activeBoxIds[activeBoxIdCount++] = BOXBEEPERON;
 
 #ifdef LED_STRIP
@@ -687,14 +684,6 @@ void mspInit(serialConfig_t *serialConfig)
     if (feature(FEATURE_SONAR)){
         activeBoxIds[activeBoxIdCount++] = BOXSONAR;
     }
-
-#ifdef USE_SERVOS
-    if (masterConfig.mixerMode == MIXER_CUSTOM_AIRPLANE) {
-        activeBoxIds[activeBoxIdCount++] = BOXSERVO1;
-        activeBoxIds[activeBoxIdCount++] = BOXSERVO2;
-        activeBoxIds[activeBoxIdCount++] = BOXSERVO3;
-    }
-#endif
 
 #ifdef BLACKBOX
     if (feature(FEATURE_BLACKBOX)){
@@ -927,7 +916,7 @@ static bool processOutCommand(uint8_t cmdMSP)
         break;
     case MSP_ARMING_CONFIG:
         headSerialReply(2);
-        serialize8(masterConfig.auto_disarm_delay); 
+        serialize8(masterConfig.auto_disarm_delay);
         serialize8(masterConfig.disarm_kill_switch);
         break;
     case MSP_LOOP_TIME:
@@ -1480,7 +1469,7 @@ static bool processInCommand(void)
         }
 #endif
         break;
-        
+
     case MSP_SET_SERVO_MIX_RULE:
 #ifdef USE_SERVOS
         i = read8();
@@ -1498,7 +1487,7 @@ static bool processInCommand(void)
         }
 #endif
         break;
-        
+
     case MSP_RESET_CONF:
         if (!ARMING_FLAG(ARMED)) {
             resetEEPROM();
@@ -1510,7 +1499,7 @@ static bool processInCommand(void)
             accSetCalibrationCycles(CALIBRATING_ACC_CYCLES);
             //Mine
             gyroSetCalibrationCycles(CALIBRATING_GYRO_CYCLES);
-        }           
+        }
         break;
     case MSP_MAG_CALIBRATION:
         if (!ARMING_FLAG(ARMED))
@@ -1816,7 +1805,7 @@ void mspProcess(void)
         while (serialTotalBytesWaiting(mspSerialPort)) {
 
             uint8_t c = serialRead(mspSerialPort);
-            
+
             bool consumed = mspProcessReceivedData(c);
 
             if (!consumed && !ARMING_FLAG(ARMED)) {

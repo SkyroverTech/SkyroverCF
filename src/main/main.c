@@ -194,7 +194,7 @@ void init(void)
     }
 
     // when using airplane/wing mixer, servo/motor outputs are remapped
-    if (masterConfig.mixerMode == MIXER_AIRPLANE || masterConfig.mixerMode == MIXER_FLYING_WING || masterConfig.mixerMode == MIXER_CUSTOM_AIRPLANE)
+    if (masterConfig.mixerMode == MIXER_COAXIAL_DUAL)
         pwm_params.airplane = true;
     else
         pwm_params.airplane = false;
@@ -380,8 +380,8 @@ int main(void) {
     init();
     //Mine
     printf("\r\n");
-    printf("Init Finished!\r\n");   
-    printf("System Init need %d ms\r\n", millis());  
+    printf("Init Finished!\r\n");
+    printf("System Init need %d ms\r\n", millis());
 
     printf("#############     Begin Test     ###############\r\n");
 

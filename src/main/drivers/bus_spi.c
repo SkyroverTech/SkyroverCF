@@ -28,9 +28,6 @@
 
 static volatile uint16_t spi1ErrorCount = 0;
 static volatile uint16_t spi2ErrorCount = 0;
-#ifdef STM32F303xC
-static volatile uint16_t spi3ErrorCount = 0;
-#endif
 
 #ifdef USE_SPI_DEVICE_1
 
@@ -61,38 +58,6 @@ void initSpi1(void)
     // Enable SPI1 clock
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
     RCC_APB2PeriphResetCmd(RCC_APB2Periph_SPI1, ENABLE);
-
-
-#ifdef STM32F303xC
-    GPIO_InitTypeDef GPIO_InitStructure;
-
-    RCC_AHBPeriphClockCmd(SPI1_GPIO_PERIPHERAL, ENABLE);
-
-    GPIO_PinAFConfig(SPI1_GPIO, SPI1_SCK_PIN_SOURCE, GPIO_AF_5);
-    GPIO_PinAFConfig(SPI1_GPIO, SPI1_MISO_PIN_SOURCE, GPIO_AF_5);
-    GPIO_PinAFConfig(SPI1_GPIO, SPI1_MOSI_PIN_SOURCE, GPIO_AF_5);
-#ifdef SPI1_NSS_PIN_SOURCE
-    GPIO_PinAFConfig(SPI1_GPIO, SPI1_NSS_PIN_SOURCE, GPIO_AF_5);
-#endif
-    // Init pins
-    GPIO_InitStructure.GPIO_Pin = SPI1_SCK_PIN | SPI1_MISO_PIN | SPI1_MOSI_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(SPI1_GPIO, &GPIO_InitStructure);
-
-#ifdef SPI1_NSS_PIN
-    GPIO_InitStructure.GPIO_Pin = SPI1_NSS_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-
-    GPIO_Init(SPI1_GPIO, &GPIO_InitStructure);
-#endif
-
-#endif
 
 #ifdef STM32F10X
     gpio_config_t gpio;
@@ -126,11 +91,6 @@ void initSpi1(void)
     spi.SPI_CPHA = SPI_CPHA_2Edge;
     spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;
 
-#ifdef STM32F303xC
-    // Configure for 8-bit reads.
-    SPI_RxFIFOThresholdConfig(SPI1, SPI_RxFIFOThreshold_QF);
-#endif
-
     SPI_Init(SPI1, &spi);
     SPI_Cmd(SPI1, ENABLE);
 }
@@ -153,7 +113,7 @@ void initSpi1(void)
 
 void initSpi2(void)
 {
-    // Specific to the STM32F103 / STM32F303 (AF5)
+    // Specific to the STM32F103
     // SPI2 Driver
     // PB12     25      SPI2_NSS
     // PB13     26      SPI2_SCK
@@ -165,38 +125,6 @@ void initSpi2(void)
     // Enable SPI2 clock
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
     RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI2, ENABLE);
-
-
-#ifdef STM32F303xC
-    GPIO_InitTypeDef GPIO_InitStructure;
-
-    RCC_AHBPeriphClockCmd(SPI2_GPIO_PERIPHERAL, ENABLE);
-
-    GPIO_PinAFConfig(SPI2_GPIO, SPI2_SCK_PIN_SOURCE, GPIO_AF_5);
-    GPIO_PinAFConfig(SPI2_GPIO, SPI2_MISO_PIN_SOURCE, GPIO_AF_5);
-    GPIO_PinAFConfig(SPI2_GPIO, SPI2_MOSI_PIN_SOURCE, GPIO_AF_5);
-#ifdef SPI2_NSS_PIN_SOURCE
-    GPIO_PinAFConfig(SPI2_GPIO, SPI2_NSS_PIN_SOURCE, GPIO_AF_5);
-#endif
-
-    GPIO_InitStructure.GPIO_Pin = SPI2_SCK_PIN | SPI2_MISO_PIN | SPI2_MOSI_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(SPI2_GPIO, &GPIO_InitStructure);
-
-#ifdef SPI2_NSS_PIN
-    GPIO_InitStructure.GPIO_Pin = SPI2_NSS_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-
-    GPIO_Init(SPI2_GPIO, &GPIO_InitStructure);
-#endif
-
-#endif
 
 #ifdef STM32F10X
     gpio_config_t gpio;
@@ -232,17 +160,11 @@ void initSpi2(void)
     spi.SPI_FirstBit = SPI_FirstBit_MSB;
     spi.SPI_CRCPolynomial = 7;
 
-#ifdef STM32F303xC
-    // Configure for 8-bit reads.
-    SPI_RxFIFOThresholdConfig(SPI2, SPI_RxFIFOThreshold_QF);
-#endif
     SPI_Init(SPI2, &spi);
     SPI_Cmd(SPI2, ENABLE);
 
     // Drive NSS high to disable connected SPI device.
     GPIO_SetBits(SPI2_GPIO, SPI2_NSS_PIN);
-
-
 }
 #endif
 
@@ -274,12 +196,6 @@ uint32_t spiTimeoutUserCallback(SPI_TypeDef *instance)
     } else if (instance == SPI2) {
         spi2ErrorCount++;
     }
-#ifdef STM32F303xC
-    else {
-        spi3ErrorCount++;
-        return spi3ErrorCount;
-    }
-#endif
     return -1;
 }
 
@@ -292,9 +208,6 @@ uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t data)
         if ((spiTimeout--) == 0)
             return spiTimeoutUserCallback(instance);
 
-#ifdef STM32F303xC
-    SPI_SendData8(instance, data);
-#endif
 #ifdef STM32F10X
     SPI_I2S_SendData(instance, data);
 #endif
@@ -302,10 +215,6 @@ uint8_t spiTransferByte(SPI_TypeDef *instance, uint8_t data)
     while (SPI_I2S_GetFlagStatus(instance, SPI_I2S_FLAG_RXNE) == RESET)
         if ((spiTimeout--) == 0)
             return spiTimeoutUserCallback(instance);
-
-#ifdef STM32F303xC
-    return ((uint8_t)SPI_ReceiveData8(instance));
-#endif
 #ifdef STM32F10X
     return ((uint8_t)SPI_I2S_ReceiveData(instance));
 #endif
@@ -323,10 +232,6 @@ bool spiTransfer(SPI_TypeDef *instance, uint8_t *out, const uint8_t *in, int len
             if ((spiTimeout--) == 0)
                 return spiTimeoutUserCallback(instance);
         }
-#ifdef STM32F303xC
-        SPI_SendData8(instance, b);
-        //SPI_I2S_SendData16(instance, b);
-#endif
 #ifdef STM32F10X
         SPI_I2S_SendData(instance, b);
 #endif
@@ -334,10 +239,6 @@ bool spiTransfer(SPI_TypeDef *instance, uint8_t *out, const uint8_t *in, int len
             if ((spiTimeout--) == 0)
                 return spiTimeoutUserCallback(instance);
         }
-#ifdef STM32F303xC
-        b = SPI_ReceiveData8(instance);
-        //b = SPI_I2S_ReceiveData16(instance);
-#endif
 #ifdef STM32F10X
         b = SPI_I2S_ReceiveData(instance);
 #endif
@@ -424,4 +325,3 @@ void spiResetErrorCounter(SPI_TypeDef *instance)
         spi2ErrorCount = 0;
     }
 }
-

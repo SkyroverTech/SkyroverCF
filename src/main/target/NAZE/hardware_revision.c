@@ -27,25 +27,19 @@
 #include "drivers/bus_spi.h"
 #include "drivers/sensor.h"
 #include "drivers/accgyro.h"
-#include "drivers/accgyro_spi_mpu6500.h"
 
 #include "hardware_revision.h"
 
 static const char * const hardwareRevisionNames[] = {
         "Unknown",
-        "Naze 32",
-        "Naze32 rev.5",
-        "Naze32 SP"
+        "Naze32 rev.5"
 };
 
 uint8_t hardwareRevision = UNKNOWN;
 
 void detectHardwareRevision(void)
 {
-    if (hse_value == 8000000)
-        hardwareRevision = NAZE32;
-    else if (hse_value == 12000000)
-        hardwareRevision = NAZE32_REV5;
+    hardwareRevision = NAZE32_REV5;
 }
 
 #ifdef USE_SPI
@@ -55,7 +49,6 @@ void detectHardwareRevision(void)
 
 #define SPI_DEVICE_NONE (0)
 #define SPI_DEVICE_FLASH (1)
-#define SPI_DEVICE_MPU (2)
 
 #define M25P16_INSTRUCTION_RDID 0x9F
 #define FLASH_M25P16_ID (0x202015)
@@ -76,17 +69,6 @@ uint8_t detectSpiDevice(void)
     if (flash_id == FLASH_M25P16_ID)
         return SPI_DEVICE_FLASH;
 
-
-    // try autodetect MPU
-    delay(50);
-    ENABLE_SPI_CS;
-    spiTransferByte(NAZE_SPI_INSTANCE, MPU6500_RA_WHOAMI | MPU6500_BIT_RESET);
-    in[0] = spiTransferByte(NAZE_SPI_INSTANCE, 0xff);
-    DISABLE_SPI_CS;
-
-    if (in[0] == MPU6500_WHO_AM_I_CONST)
-        return SPI_DEVICE_MPU;
-
     return SPI_DEVICE_NONE;
 }
 
@@ -94,12 +76,6 @@ uint8_t detectSpiDevice(void)
 
 void updateHardwareRevision(void)
 {
-#ifdef USE_SPI
-    uint8_t detectedSpiDevice = detectSpiDevice();
-
-    if (detectedSpiDevice == SPI_DEVICE_MPU && hardwareRevision == NAZE32_REV5)
-        hardwareRevision = NAZE32_SP;
-#endif
 }
 
 void spiBusInit(void)

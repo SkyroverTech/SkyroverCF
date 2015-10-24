@@ -156,16 +156,7 @@ static void hmc5883lConfigureDataReadyInterruptHandling(void)
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 #endif
 
-#ifdef STM32F303xC
-    /* Enable SYSCFG clock otherwise the EXTI irq handlers are not called */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
-#endif
-
 #ifdef STM32F10X
-    gpioExtiLineConfig(hmc5883Config->exti_port_source, hmc5883Config->exti_pin_source);
-#endif
-
-#ifdef STM32F303xC
     gpioExtiLineConfig(hmc5883Config->exti_port_source, hmc5883Config->exti_pin_source);
 #endif
 
@@ -224,11 +215,6 @@ void hmc5883lInit(void)
     gpio_config_t gpio;
 
     if (hmc5883Config) {
-#ifdef STM32F303
-        if (hmc5883Config->gpioAHBPeripherals) {
-            RCC_AHBPeriphClockCmd(hmc5883Config->gpioAHBPeripherals, ENABLE);
-        }
-#endif
 #ifdef STM32F10X
         if (hmc5883Config->gpioAPB2Peripherals) {
             RCC_APB2PeriphClockCmd(hmc5883Config->gpioAPB2Peripherals, ENABLE);

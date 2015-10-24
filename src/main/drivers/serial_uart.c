@@ -49,18 +49,6 @@ static void usartConfigurePinInversion(uartPort_t *uartPort) {
     }
 #endif
 
-#ifdef STM32F303xC
-    uint32_t inversionPins = 0;
-
-    if (uartPort->port.mode & MODE_TX) {
-        inversionPins |= USART_InvPin_Tx;
-    }
-    if (uartPort->port.mode & MODE_RX) {
-        inversionPins |= USART_InvPin_Rx;
-    }
-
-    USART_InvPinCmd(uartPort->USARTx, inversionPins, inverted ? ENABLE : DISABLE);
-#endif
 #endif
 }
 

@@ -33,14 +33,6 @@ void ws2811LedStripHardwareInit(void)
 
     uint16_t prescalerValue;
 
-#ifdef CC3D
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
-    GPIO_StructInit(&GPIO_InitStructure);
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_Init(GPIOB, &GPIO_InitStructure);
-#else
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 
     /* GPIOA Configuration: TIM3 Channel 1 as alternate function push-pull */
@@ -49,7 +41,6 @@ void ws2811LedStripHardwareInit(void)
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
-#endif
 
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
     /* Compute the prescaler value */
@@ -128,5 +119,3 @@ void ws2811LedStripDMAEnable(void)
     TIM_Cmd(TIM3, ENABLE);
     DMA_Cmd(DMA1_Channel6, ENABLE);
 }
-
-

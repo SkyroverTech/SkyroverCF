@@ -20,13 +20,7 @@
 typedef enum {
     GYRO_NONE = 0,
     GYRO_DEFAULT,
-    GYRO_MPU6050,
-    GYRO_L3G4200D,
-    GYRO_MPU3050,
-    GYRO_L3GD20,
-    GYRO_SPI_MPU6000,
-    GYRO_SPI_MPU6500,
-    GYRO_FAKE
+    GYRO_MPU6050
 } gyroSensor_e;
 
 extern gyro_t gyro;
@@ -43,4 +37,3 @@ void useGyroConfig(gyroConfig_t *gyroConfigToUse);
 void gyroSetCalibrationCycles(uint16_t calibrationCyclesRequired);
 void gyroUpdate(void);
 bool isGyroCalibrationComplete(void);
-

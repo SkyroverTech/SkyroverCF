@@ -116,22 +116,9 @@ static void applyMultirotorAltHold(void)
     }
 }
 
-static void applyFixedWingAltHold(airplaneConfig_t *airplaneConfig)
+void applyAltHold(void)
 {
-    // handle fixedwing-related althold. UNTESTED! and probably wrong
-    // most likely need to check changes on pitch channel and 'reset' althold similar to
-    // how throttle does it on multirotor
-
-    rcCommand[PITCH] += altHoldThrottleAdjustment * airplaneConfig->fixedwing_althold_dir;
-}
-
-void applyAltHold(airplaneConfig_t *airplaneConfig)
-{
-    if (STATE(FIXED_WING)) {
-        applyFixedWingAltHold(airplaneConfig);
-    } else {
-        applyMultirotorAltHold();
-    }
+    applyMultirotorAltHold();
 }
 
 void updateAltHoldState(void)
@@ -337,4 +324,3 @@ int32_t altitudeHoldGetEstimatedAltitude(void)
 }
 
 #endif
-
