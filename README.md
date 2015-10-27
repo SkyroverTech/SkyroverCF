@@ -29,12 +29,6 @@ This is a Cleanflight repo for Naze32 Rev5 only.
 
 [OneNote笔记](http://1drv.ms/1W1n4xM)
 
-# Contact
-
-- [ccharlieli](ccharlieli@live.com)
-- [ZhangMeng](mzhang1_10@sina.cn)
-
-
 # License
 
 GPLv3
