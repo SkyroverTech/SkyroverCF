@@ -18,9 +18,6 @@
 #pragma once
 
 typedef struct hmc5883Config_s {
-#ifdef STM32F303
-    uint32_t gpioAHBPeripherals;
-#endif
 #ifdef STM32F10X
     uint32_t gpioAPB2Peripherals;
 #endif

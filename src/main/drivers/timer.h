@@ -23,12 +23,7 @@
 
 typedef uint16_t captureCompare_t;        // 16 bit on both 103 and 303, just register access must be 32bit sometimes (use timCCR_t)
 
-#if defined(STM32F303)
-typedef uint32_t timCCR_t;
-typedef uint32_t timCCER_t;
-typedef uint32_t timSR_t;
-typedef uint32_t timCNT_t;
-#elif defined(STM32F10X)
+#if defined(STM32F10X)
 typedef uint16_t timCCR_t;
 typedef uint16_t timCCER_t;
 typedef uint16_t timSR_t;
@@ -65,10 +60,6 @@ typedef struct {
     uint8_t irq;
     uint8_t outputEnable;
     GPIO_Mode gpioInputMode;
-#ifdef STM32F303
-    uint8_t gpioPinSource;             // TODO - this can be removed and pinSource calculated from pin
-    uint8_t alternateFunction;
-#endif
 } timerHardware_t;
 
 extern const timerHardware_t timerHardware[];
@@ -117,4 +108,3 @@ void timerStart(void);
 void timerForceOverflow(TIM_TypeDef *tim);
 
 void configTimeBase(TIM_TypeDef *tim, uint16_t period, uint8_t mhz);  // TODO - just for migration
-

@@ -153,7 +153,7 @@ void rxInit(rxConfig_t *rxConfig)
     }
 
     if (!feature(FEATURE_3D)) {
-        rcData[0] = rxConfig->rx_min_usec;
+        rcData[0] = rxConfig->rx_min_usec;  //wrong,why not rcData[3]???
     }
 
 #ifdef SERIAL_RX
@@ -516,12 +516,12 @@ void updateRSSIPWM(void)
     int16_t pwmRssi = 0;
     // Read value of AUX channel as rssi
     pwmRssi = rcData[rxConfig->rssi_channel - 1];
-	
-	// RSSI_Invert option	
+
+	// RSSI_Invert option
 	if (rxConfig->rssi_ppm_invert) {
 	    pwmRssi = ((2000 - pwmRssi) + 1000);
 	}
-	
+
     // Range of rawPwmRssi is [1000;2000]. rssi should be in [0;1023];
     rssi = (uint16_t)((constrain(pwmRssi - 1000, 0, 1000) / 1000.0f) * 1023.0f);
 }
@@ -572,5 +572,3 @@ void updateRSSI(uint32_t currentTime)
         updateRSSIADC(currentTime);
     }
 }
-
-

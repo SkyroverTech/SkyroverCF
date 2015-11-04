@@ -26,31 +26,10 @@
 // Note: this is called MultiType/MULTITYPE_* in baseflight.
 typedef enum mixerMode
 {
-    MIXER_TRI = 1,
-    MIXER_QUADP = 2,
-    MIXER_QUADX = 3,
-    MIXER_BICOPTER = 4,
-    MIXER_GIMBAL = 5,
-    MIXER_Y6 = 6,
-    MIXER_HEX6 = 7,
-    MIXER_FLYING_WING = 8,
-    MIXER_Y4 = 9,
-    MIXER_HEX6X = 10,
-    MIXER_OCTOX8 = 11,
-    MIXER_OCTOFLATP = 12,
-    MIXER_OCTOFLATX = 13,
-    MIXER_AIRPLANE = 14,        // airplane / singlecopter / dualcopter (not yet properly supported)
-    MIXER_HELI_120_CCPM = 15,
-    MIXER_HELI_90_DEG = 16,
-    MIXER_VTAIL4 = 17,
-    MIXER_HEX6H = 18,
-    MIXER_PPM_TO_SERVO = 19,    // PPM -> servo relay
-    MIXER_DUALCOPTER = 20,
-    MIXER_SINGLECOPTER = 21,
-    MIXER_ATAIL4 = 22,
-    MIXER_CUSTOM = 23,
-    MIXER_CUSTOM_AIRPLANE = 24,
-    MIXER_CUSTOM_TRI = 25
+    MIXER_QUADX = 1,
+    MIXER_GIMBAL = 2,
+    MIXER_PPM_TO_SERVO = 3,    // PPM -> servo relay
+    MIXER_COAXIAL_DUAL = 4
 } mixerMode_e;
 
 // Custom mixer data per motor
@@ -118,37 +97,15 @@ enum {
 typedef enum {
     SERVO_GIMBAL_PITCH = 0,
     SERVO_GIMBAL_ROLL = 1,
-    SERVO_FLAPS = 2,
-    SERVO_FLAPPERON_1 = 3,
-    SERVO_FLAPPERON_2 = 4,
-    SERVO_RUDDER = 5,
-    SERVO_ELEVATOR = 6,
-    SERVO_THROTTLE = 7, // for internal combustion (IC) planes
-
-    SERVO_BICOPTER_LEFT = 4,
-    SERVO_BICOPTER_RIGHT = 5,
-
-    SERVO_DUALCOPTER_LEFT = 4,
-    SERVO_DUALCOPTER_RIGHT = 5,
-
-    SERVO_SINGLECOPTER_1 = 3,
-    SERVO_SINGLECOPTER_2 = 4,
-    SERVO_SINGLECOPTER_3 = 5,
-    SERVO_SINGLECOPTER_4 = 6,
+    SERVO_COAXILDUAL_1 = 2,
+    SERVO_COAXILDUAL_2 = 3,
+    SERVO_COAXILDUAL_3 = 4,
+    SERVO_COAXILDUAL_4 = 5
 
 } servoIndex_e; // FIXME rename to servoChannel_e
 
-#define SERVO_PLANE_INDEX_MIN SERVO_FLAPS
-#define SERVO_PLANE_INDEX_MAX SERVO_THROTTLE
-
-#define SERVO_DUALCOPTER_INDEX_MIN SERVO_DUALCOPTER_LEFT
-#define SERVO_DUALCOPTER_INDEX_MAX SERVO_DUALCOPTER_RIGHT
-
-#define SERVO_SINGLECOPTER_INDEX_MIN SERVO_SINGLECOPTER_1
-#define SERVO_SINGLECOPTER_INDEX_MAX SERVO_SINGLECOPTER_4
-
-#define SERVO_FLAPPERONS_MIN SERVO_FLAPPERON_1
-#define SERVO_FLAPPERONS_MAX SERVO_FLAPPERON_2
+#define SERVO_COAXILDUAL_INDEX_MIN SERVO_COAXILDUAL_1
+#define SERVO_COAXILDUAL_INDEX_MAX SERVO_COAXILDUAL_4
 
 typedef struct servoMixer_t {
     uint8_t targetChannel;                  // servo that receives the output of the rule

@@ -32,7 +32,7 @@ SERIAL_DEVICE	?= $(firstword $(wildcard /dev/ttyUSB*) no-port-found)
 
 FORKNAME			 = cleanflight
 
-VALID_TARGETS	 = NAZE NAZE32PRO OLIMEXINO STM32F3DISCOVERY CHEBUZZF3 CC3D CJMCU EUSTM32F103RC SPRACINGF3 PORT103R SPARKY ALIENWIIF1 ALIENWIIF3 COLIBRI_RACE
+VALID_TARGETS	 = NAZE
 
 FLASH_SIZE = 128
 
@@ -162,16 +162,9 @@ HIGHEND_SRC  = flight/autotune.c \
 		   blackbox/blackbox_io.c
 
 NAZE_SRC	 = startup_stm32f10x_md_gcc.S \
-		   drivers/accgyro_adxl345.c \
-		   drivers/accgyro_bma280.c \
-		   drivers/accgyro_l3g4200d.c \
-		   drivers/accgyro_mma845x.c \
-		   drivers/accgyro_mpu3050.c \
 		   drivers/accgyro_mpu6050.c \
-		   drivers/accgyro_spi_mpu6500.c \
 		   drivers/adc.c \
 		   drivers/adc_stm32f10x.c \
-		   drivers/barometer_bmp085.c \
 		   drivers/barometer_ms5611.c \
 		   drivers/bus_spi.c \
 		   drivers/bus_i2c_stm32f10x.c \
@@ -295,7 +288,7 @@ $(TARGET_BIN): $(TARGET_ELF)
 
 $(TARGET_ELF):  $(TARGET_OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
-	$(SIZE) $(TARGET_ELF) 
+	$(SIZE) $(TARGET_ELF)
 
 # Compile
 $(OBJECT_DIR)/$(TARGET)/%.o: %.c

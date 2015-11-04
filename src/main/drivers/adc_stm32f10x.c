@@ -46,10 +46,6 @@
 
 void adcInit(drv_adc_config_t *init)
 {
-#if defined(CJMCU) || defined(CC3D)
-    UNUSED(init);
-#endif
-
     ADC_InitTypeDef adc;
     DMA_InitTypeDef dma;
     GPIO_InitTypeDef GPIO_InitStructure;

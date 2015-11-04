@@ -191,11 +191,11 @@ static const char * const sensorTypeNames[] = {
 
 #define SENSOR_NAMES_MASK (SENSOR_GYRO | SENSOR_ACC | SENSOR_BARO | SENSOR_MAG)
 
-static const char * const sensorHardwareNames[4][11] = {
-    { "", "None", "MPU6050", "L3G4200D", "MPU3050", "L3GD20", "MPU6000", "MPU6500", "FAKE", NULL },
-    { "", "None", "ADXL345", "MPU6050", "MMA845x", "BMA280", "LSM303DLHC", "MPU6000", "MPU6500", "FAKE", NULL },
-    { "", "None", "BMP085", "MS5611", NULL },
-    { "", "None", "HMC5883", "AK8975", NULL }
+static const char * const sensorHardwareNames[4][4] = {
+    { "", "None", "MPU6050", NULL },
+    { "", "None", "MPU6050", NULL },
+    { "", "None", "MS5611", NULL },
+    { "", "None", "HMC5883", NULL }
 };
 #endif
 
@@ -2144,7 +2144,7 @@ void cliProcess(void)
     static bool MineFlag = true;
     if(MineFlag)
     {
-        printf("Enter cliMode!\r\n");       
+        printf("Enter cliMode!\r\n");
         MineFlag = false;
     }
     while (serialTotalBytesWaiting(cliPort)) {
@@ -2250,7 +2250,7 @@ void cliProcess(void)
 void cliInit(serialConfig_t *serialConfig)
 {
     UNUSED(serialConfig);
-    
+
     setPrintfSerialPort(serialGetAvialablePort());
 
 }

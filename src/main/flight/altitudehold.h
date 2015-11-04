@@ -25,7 +25,7 @@ extern int32_t AltHold;
 extern int32_t vario;
 
 void configureAltitudeHold(pidProfile_t *initialPidProfile, barometerConfig_t *intialBarometerConfig, rcControlsConfig_t *initialRcControlsConfig, escAndServoConfig_t *initialEscAndServoConfig);
-void applyAltHold(airplaneConfig_t *airplaneConfig);
+void applyAltHold(void);
 void updateAltHoldState(void);
 void updateSonarAltHoldState(void);
 

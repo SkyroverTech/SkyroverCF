@@ -89,9 +89,9 @@ enum {
 };
 
 /* VBAT monitoring interval (in microseconds) - 1s*/
-#define VBATINTERVAL (6 * 3500)       
+#define VBATINTERVAL (6 * 3500)
 /* IBat monitoring interval (in microseconds) - 6 default looptimes */
-#define IBATINTERVAL (6 * 3500)       
+#define IBATINTERVAL (6 * 3500)
 
 uint32_t currentTime = 0;
 uint32_t previousTime = 0;
@@ -545,7 +545,6 @@ void processRx(void)
     // mixTable constrains motor commands, so checking  throttleStatus is enough
     if (ARMING_FLAG(ARMED)
         && feature(FEATURE_MOTOR_STOP)
-        && !STATE(FIXED_WING)
     ) {
         if (isUsingSticksForArming()) {
             if (throttleStatus == THROTTLE_LOW) {
@@ -664,10 +663,6 @@ void processRx(void)
         DISABLE_FLIGHT_MODE(PASSTHRU_MODE);
     }
 
-    if (masterConfig.mixerMode == MIXER_FLYING_WING || masterConfig.mixerMode == MIXER_AIRPLANE) {
-        DISABLE_FLIGHT_MODE(HEADFREE_MODE);
-    }
-
 #ifdef TELEMETRY
     if (feature(FEATURE_TELEMETRY)) {
         if ((!masterConfig.telemetryConfig.telemetry_switch && ARMING_FLAG(ARMED)) ||
@@ -767,7 +762,8 @@ void loop(void)
 #if defined(BARO) || defined(SONAR)
         if (sensors(SENSOR_BARO) || sensors(SENSOR_SONAR)) {
             if (FLIGHT_MODE(BARO_MODE) || FLIGHT_MODE(SONAR_MODE)) {
-                applyAltHold(&masterConfig.airplaneConfig);
+                // applyAltHold(&masterConfig.airplaneConfig);
+                applyAltHold();
             }
         }
 #endif
@@ -775,14 +771,7 @@ void loop(void)
         // If we're armed, at minimum throttle, and we do arming via the
         // sticks, do not process yaw input from the rx.  We do this so the
         // motors do not spin up while we are trying to arm or disarm.
-        // Allow yaw control for tricopters if the user wants the servo to move even when unarmed.
-        if (isUsingSticksForArming() && rcData[THROTTLE] <= masterConfig.rxConfig.mincheck
-#ifndef USE_QUAD_MIXER_ONLY
-                && !((masterConfig.mixerMode == MIXER_TRI || masterConfig.mixerMode == MIXER_CUSTOM_TRI) && masterConfig.mixerConfig.tri_unarmed_servo)
-                && masterConfig.mixerMode != MIXER_AIRPLANE
-                && masterConfig.mixerMode != MIXER_FLYING_WING
-#endif
-        ) {
+        if (isUsingSticksForArming() && rcData[THROTTLE] <= masterConfig.rxConfig.mincheck) {
             rcCommand[YAW] = 0;
         }
 
