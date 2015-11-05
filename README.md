@@ -1,5 +1,7 @@
 # Description
 
+[![build status](https://travis-ci.org/SkyroverTech/SkyroverCF.svg?branch=master)](https://travis-ci.org/SkyroverTech/SkyroverCF)
+
 This is a Cleanflight repo for Naze32 Rev5 only.
 
 # 文件结构
