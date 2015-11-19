@@ -5,15 +5,9 @@
 # this stuff is worth it, you can buy me a beer in return
 ###############################################################################
 #
-# Makefile for building the cleanflight firmware.
+# Makefile for building the SkyroverCF firmware.
 #
-# Invoke this with 'make help' to see the list of supported targets.
-#
-
 ###############################################################################
-# Things that the user might override on the commandline
-#
-
 # The target to build, see VALID_TARGETS below
 TARGET		= NAZE
 
@@ -26,20 +20,22 @@ DEBUG ?=
 # Serial port/Device for flashing
 SERIAL_DEVICE	?= $(firstword $(wildcard /dev/ttyUSB*) no-port-found)
 
-###############################################################################
-# Things that need to be maintained as the source changes
-#
+# Fork's name
+FORKNAME			 = SkyroverCF
 
-FORKNAME			 = cleanflight
-
+# Validate targets, NAZE only for now
 VALID_TARGETS	 = NAZE
 
+# Flash size for NAZE
 FLASH_SIZE = 128
 
+# Version info from git
 REVISION = $(shell git log -1 --format="%h")
 
+###############################################################################
 # Working directories
-# $(dir <filenames>) return part of directory or './' without '/'.   Example:$(dir src/foo.c hacks) = src/ ./
+###############################################################################
+
 ROOT		 := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 SRC_DIR		 = $(ROOT)/src/main
 OBJECT_DIR	 = $(ROOT)/obj/main
@@ -48,47 +44,30 @@ CMSIS_DIR	 = $(ROOT)/lib/main/CMSIS
 INCLUDE_DIRS	 = $(SRC_DIR)
 LINKER_DIR	 = $(ROOT)/src/main/target
 
-
 # Search path for sources
 VPATH		:= $(SRC_DIR):$(SRC_DIR)/startup
-USBFS_DIR	= $(ROOT)/lib/main/STM32_USB-FS-Device_Driver
-# $(notdir <filenames>) opposite to dir
-USBPERIPH_SRC = $(notdir $(wildcard $(USBFS_DIR)/src/*.c))
-
 CSOURCES        := $(shell find $(SRC_DIR) -name '*.c')
-
 STDPERIPH_DIR	 = $(ROOT)/lib/main/STM32F10x_StdPeriph_Driver
-
 STDPERIPH_SRC = $(notdir $(wildcard $(STDPERIPH_DIR)/src/*.c))
-
 EXCLUDES	= stm32f10x_crc.c \
 		stm32f10x_cec.c \
 		stm32f10x_can.c
-
 STDPERIPH_SRC := $(filter-out ${EXCLUDES}, $(STDPERIPH_SRC))
 
 # Search path and source files for the CMSIS sources
 VPATH		:= $(VPATH):$(CMSIS_DIR)/CM3/CoreSupport:$(CMSIS_DIR)/CM3/DeviceSupport/ST/STM32F10x
 CMSIS_SRC	 = $(notdir $(wildcard $(CMSIS_DIR)/CM3/CoreSupport/*.c \
 			   $(CMSIS_DIR)/CM3/DeviceSupport/ST/STM32F10x/*.c))
-
 INCLUDE_DIRS := $(INCLUDE_DIRS) \
 		   $(STDPERIPH_DIR)/inc \
 		   $(CMSIS_DIR)/CM3/CoreSupport \
 		   $(CMSIS_DIR)/CM3/DeviceSupport/ST/STM32F10x \
 
 DEVICE_STDPERIPH_SRC = $(STDPERIPH_SRC)
-
 LD_SCRIPT	 = $(LINKER_DIR)/stm32_flash_f103_$(FLASH_SIZE)k.ld
-
 ARCH_FLAGS	 = -mthumb -mcpu=cortex-m3
 TARGET_FLAGS = -D$(TARGET) -pedantic
-DEVICE_FLAGS = -DSTM32F10X_MD -DSTM32F10X
-
-ifneq ($(FLASH_SIZE),)
-DEVICE_FLAGS := $(DEVICE_FLAGS) -DFLASH_SIZE=$(FLASH_SIZE)
-endif
-
+DEVICE_FLAGS = -DSTM32F10X_MD -DSTM32F10X -DFLASH_SIZE=$(FLASH_SIZE)
 TARGET_DIR = $(ROOT)/src/main/target/$(TARGET)
 TARGET_SRC = $(notdir $(wildcard $(TARGET_DIR)/*.c))
 
@@ -196,17 +175,13 @@ NAZE_SRC	 = startup_stm32f10x_md_gcc.S \
 VPATH		:= $(VPATH):$(STDPERIPH_DIR)/src
 
 ###############################################################################
-# Things that might need changing to use different tools
-#
-
-# Tool names
+# Tools
+###############################################################################
 CC		 = arm-none-eabi-gcc
 OBJCOPY		 = arm-none-eabi-objcopy
 SIZE		 = arm-none-eabi-size
 
-#
 # Tool options.
-#
 
 ifeq ($(DEBUG),GDB)
 OPTIMIZE	 = -O0
@@ -263,12 +238,13 @@ CPPCHECK         = cppcheck $(CSOURCES) --enable=all --platform=unix64 \
 		   $(addprefix -I,$(INCLUDE_DIRS)) \
 		   -I/usr/include -I/usr/include/linux
 
-#
-# Things we will build
-#
-ifeq ($(filter $(TARGET),$(VALID_TARGETS)),)
-$(error Target '$(TARGET)' is not valid, must be one of $(VALID_TARGETS))
-endif
+##
+#SRC_DIR		 = $(ROOT)/src/main
+#OBJECT_DIR	 = $(ROOT)/obj/main
+#BIN_DIR		 = $(ROOT)/obj
+#CMSIS_DIR	 = $(ROOT)/lib/main/CMSIS
+#INCLUDE_DIRS	 = $(SRC_DIR)
+#LINKER_DIR	 = $(ROOT)/src/main/target
 
 TARGET_BIN	 = $(BIN_DIR)/$(FORKNAME)_$(TARGET).bin
 TARGET_HEX	 = $(BIN_DIR)/$(FORKNAME)_$(TARGET).hex
@@ -276,9 +252,6 @@ TARGET_ELF	 = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).elf
 TARGET_OBJS	 = $(addsuffix .o,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $($(TARGET)_SRC))))
 TARGET_DEPS	 = $(addsuffix .d,$(addprefix $(OBJECT_DIR)/$(TARGET)/,$(basename $($(TARGET)_SRC))))
 TARGET_MAP	 = $(OBJECT_DIR)/$(FORKNAME)_$(TARGET).map
-
-# List of buildable ELF files and their object dependencies.
-# It would be nice to compute these lists, but that seems to be just beyond make.
 
 $(TARGET_HEX): $(TARGET_ELF)
 	$(OBJCOPY) -O ihex --set-start 0x8000000 $< $@
@@ -290,13 +263,15 @@ $(TARGET_ELF):  $(TARGET_OBJS)
 	$(CC) -o $@ $^ $(LDFLAGS)
 	$(SIZE) $(TARGET_ELF)
 
+###############################################################################
 # Compile
+###############################################################################
+
 $(OBJECT_DIR)/$(TARGET)/%.o: %.c
 	@mkdir -p $(dir $@)
 	@echo %% $(notdir $<)
 	@$(CC) -c -o $@ $(CFLAGS) $<
 
-# Assemble
 $(OBJECT_DIR)/$(TARGET)/%.o: %.s
 	@mkdir -p $(dir $@)
 	@echo %% $(notdir $<)
@@ -306,6 +281,10 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.S
 	@mkdir -p $(dir $@)
 	@echo %% $(notdir $<)
 	@$(CC) -c -o $@ $(ASFLAGS) $<
+
+###############################################################################
+# Make options
+###############################################################################
 
 clean:
 	rm -f $(TARGET_BIN) $(TARGET_HEX) $(TARGET_ELF) $(TARGET_OBJS) $(TARGET_MAP)
@@ -344,9 +323,7 @@ help:
 	@echo "Makefile for the $(FORKNAME) firmware"
 	@echo ""
 	@echo "Usage:"
-	@echo "        make [TARGET=<target>] [OPTIONS=\"<options>\"]"
-	@echo ""
-	@echo "Valid TARGET values are: $(VALID_TARGETS)"
+	@echo "        make [OPTIONS=\"<options>\"]"
 	@echo ""
 
 ## test        : run the cleanflight test suite
@@ -355,7 +332,7 @@ test:
 
 ## show        : show values
 show:
-	@echo "$(VPATH)"
+	echo "$(VPATH)"
 
 # rebuild everything when makefile changes
 $(TARGET_OBJS) : Makefile
