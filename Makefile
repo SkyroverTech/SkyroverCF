@@ -11,6 +11,9 @@
 # The target to build, see VALID_TARGETS below
 TARGET		= NAZE
 
+# The target mixer may be : MIXER_QUADX or MIXER_COAXIAL_DUAL
+TARGET_MIXER = MIXER_QUADX
+
 # Compile-time options
 OPTIONS		?=
 
@@ -208,6 +211,7 @@ CFLAGS		 = $(ARCH_FLAGS) \
 		   -D'__FORKNAME__="$(FORKNAME)"' \
 		   -D'__TARGET__="$(TARGET)"' \
 		   -D'__REVISION__="$(REVISION)"' \
+			 -D'_TARGET_MIXER_="$(TARGET_MIXER)"'
 		   -save-temps=obj \
 		   -MMD -MP
 
