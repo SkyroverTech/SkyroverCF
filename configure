@@ -11,7 +11,7 @@ if [ `which cppcheck` ]; then
 fi
 
 if [ -z $CPPCHECK ]; then
-	cd dev_tools/cppcheck-1.71 && make install CFGDIR=/usr/local/share/cppcheck/
+	cd lib/cppcheck-1.71 && make install CFGDIR=/usr/local/share/cppcheck/
 fi
 
 ## ===================================================================

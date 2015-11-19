@@ -17,7 +17,7 @@
 
 #pragma once
 
-// #if defined(STM32F10X)
+#if defined(STM32F10X)
 typedef enum
 {
     Mode_AIN = 0x0,
@@ -29,7 +29,7 @@ typedef enum
     Mode_AF_OD = 0x1C,
     Mode_AF_PP = 0x18
 } GPIO_Mode;
-// #endif
+#endif
 
 typedef enum
 {

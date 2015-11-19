@@ -326,7 +326,7 @@ help:
 	@echo "        make [OPTIONS=\"<options>\"]"
 	@echo ""
 
-## test        : run the cleanflight test suite
+## test        : run the SkyroverCF test suite
 test:
 	cd src/test && $(MAKE) test || true
 

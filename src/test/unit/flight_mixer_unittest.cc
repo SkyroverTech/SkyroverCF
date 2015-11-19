@@ -306,7 +306,6 @@ protected:
     }
 };
 
-
 TEST_F(CustomMixerIntegrationTest, TestCustomMixer)
 {
     // given
@@ -316,12 +315,12 @@ TEST_F(CustomMixerIntegrationTest, TestCustomMixer)
     };
 
     servoMixer_t testServoMixer[EXPECTED_SERVOS_TO_MIX_COUNT] = {
-        { SERVO_FLAPS, INPUT_RC_AUX1,  100, 0, 0, 100, 0 },
+        { SERVO_ELEVATOR, INPUT_STABILIZED_PITCH, 100, 0, 0, 100, 0 },
         { SERVO_FLAPPERON_1, INPUT_STABILIZED_ROLL,  100, 0, 0, 100, 0 },
         { SERVO_FLAPPERON_2, INPUT_STABILIZED_ROLL,  100, 0, 0, 100, 0 },
         { SERVO_RUDDER, INPUT_STABILIZED_YAW,   100, 0, 0, 100, 0 },
-        { SERVO_ELEVATOR, INPUT_STABILIZED_PITCH, 100, 0, 0, 100, 0 },
         { SERVO_THROTTLE, INPUT_STABILIZED_THROTTLE, 100, 0, 0, 100, 0 },
+        { SERVO_FLAPS, INPUT_RC_AUX1,  100, 0, 0, 100, 0 },
     };
     memcpy(customServoMixer, testServoMixer, sizeof(testServoMixer));
 
@@ -364,73 +363,74 @@ TEST_F(CustomMixerIntegrationTest, TestCustomMixer)
 
     EXPECT_EQ(EXPECTED_SERVOS_TO_MIX_COUNT, updatedServoCount);
 
-    EXPECT_EQ(2000, servos[0].value); // Flaps
+    EXPECT_EQ(TEST_SERVO_MID, servos[0].value);
     EXPECT_EQ(TEST_SERVO_MID, servos[1].value);
     EXPECT_EQ(TEST_SERVO_MID, servos[2].value);
     EXPECT_EQ(TEST_SERVO_MID, servos[3].value);
-    EXPECT_EQ(TEST_SERVO_MID, servos[4].value);
-    EXPECT_EQ(1000, servos[5].value); // Throttle
+    EXPECT_EQ(1000, servos[4].value); // Throttle
+    EXPECT_EQ(2000, servos[5].value); // Flaps
 
 }
 
 // STUBS
 
 extern "C" {
-rollAndPitchInclination_t inclination;
-rxRuntimeConfig_t rxRuntimeConfig;
 
-int16_t axisPID[XYZ_AXIS_COUNT];
-int16_t rcCommand[4];
-int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
+    rollAndPitchInclination_t inclination;
+    rxRuntimeConfig_t rxRuntimeConfig;
 
-uint32_t rcModeActivationMask;
-int16_t debug[DEBUG16_VALUE_COUNT];
+    int16_t axisPID[XYZ_AXIS_COUNT];
+    int16_t rcCommand[4];
+    int16_t rcData[MAX_SUPPORTED_RC_CHANNEL_COUNT];
 
-uint8_t stateFlags;
-uint16_t flightModeFlags;
-uint8_t armingFlags;
+    uint32_t rcModeActivationMask;
+    int16_t debug[DEBUG16_VALUE_COUNT];
 
-void delay(uint32_t) {}
+    uint8_t stateFlags;
+    uint16_t flightModeFlags;
+    uint8_t armingFlags;
 
-bool feature(uint32_t mask) {
-    return (mask & testFeatureMask);
-}
+    void delay(uint32_t) {}
 
-int32_t lowpassFixed(lowpass_t *, int32_t, int16_t) {
-    return 0;
-}
-
-void pwmWriteMotor(uint8_t index, uint16_t value) {
-    motors[index].value = value;
-    updatedMotorCount++;
-}
-
-void pwmShutdownPulsesForAllMotors(uint8_t motorCount)
-{
-    uint8_t index;
-
-    for(index = 0; index < motorCount; index++){
-        motors[index].value = 0;
+    bool feature(uint32_t mask) {
+        return (mask & testFeatureMask);
     }
-}
 
-void pwmCompleteOneshotMotorUpdate(uint8_t motorCount) {
-    lastOneShotUpdateMotorCount = motorCount;
-}
-
-void pwmWriteServo(uint8_t index, uint16_t value) {
-    // FIXME logic in test, mimic's production code.
-    // Perhaps the solution is to remove the logic from the production code version and assume that
-    // anything calling calling pwmWriteServo always uses a valid index?
-    // See MAX_SERVOS in pwm_output (driver) and MAX_SUPPORTED_SERVOS (flight)
-    if (index < MAX_SERVOS) {
-        servos[index].value = value;
+    int32_t lowpassFixed(lowpass_t *, int32_t, int16_t) {
+        return 0;
     }
-    updatedServoCount++;
-}
 
-bool failsafeIsActive(void) {
-    return false;
-}
+    void pwmWriteMotor(uint8_t index, uint16_t value) {
+        motors[index].value = value;
+        updatedMotorCount++;
+    }
+
+    void pwmShutdownPulsesForAllMotors(uint8_t motorCount)
+    {
+        uint8_t index;
+
+        for(index = 0; index < motorCount; index++){
+            motors[index].value = 0;
+        }
+    }
+
+    void pwmCompleteOneshotMotorUpdate(uint8_t motorCount) {
+        lastOneShotUpdateMotorCount = motorCount;
+    }
+
+    void pwmWriteServo(uint8_t index, uint16_t value) {
+        // FIXME logic in test, mimic's production code.
+        // Perhaps the solution is to remove the logic from the production code version and assume that
+        // anything calling calling pwmWriteServo always uses a valid index?
+        // See MAX_SERVOS in pwm_output (driver) and MAX_SUPPORTED_SERVOS (flight)
+        if (index < MAX_SERVOS) {
+            servos[index].value = value;
+        }
+        updatedServoCount++;
+    }
+
+    bool failsafeIsActive(void) {
+        return false;
+    }
 
 }

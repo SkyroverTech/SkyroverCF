@@ -1,6 +1,5 @@
 env:
   - TARGET=NAZE
-  - TARGET=NAZE32PRO
 
 # use new docker environment
 sudo: false

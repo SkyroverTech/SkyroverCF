@@ -26,14 +26,35 @@
 // Note: this is called MultiType/MULTITYPE_* in baseflight.
 typedef enum mixerMode
 {
-    MIXER_QUADX = 1,
-    MIXER_GIMBAL = 2,
-    MIXER_PPM_TO_SERVO = 3,    // PPM -> servo relay
-    MIXER_COAXIAL_DUAL = 4
+    MIXER_TRI = 1,
+    MIXER_QUADP = 2,
+    MIXER_QUADX = 3,
+    MIXER_BICOPTER = 4,
+    MIXER_GIMBAL = 5,
+    MIXER_Y6 = 6,
+    MIXER_HEX6 = 7,
+    MIXER_FLYING_WING = 8,
+    MIXER_Y4 = 9,
+    MIXER_HEX6X = 10,
+    MIXER_OCTOX8 = 11,
+    MIXER_OCTOFLATP = 12,
+    MIXER_OCTOFLATX = 13,
+    MIXER_AIRPLANE = 14,        // airplane / singlecopter / dualcopter (not yet properly supported)
+    MIXER_HELI_120_CCPM = 15,
+    MIXER_HELI_90_DEG = 16,
+    MIXER_VTAIL4 = 17,
+    MIXER_HEX6H = 18,
+    MIXER_PPM_TO_SERVO = 19,    // PPM -> servo relay
+    MIXER_DUALCOPTER = 20,
+    MIXER_SINGLECOPTER = 21,
+    MIXER_ATAIL4 = 22,
+    MIXER_CUSTOM = 23,
+    MIXER_CUSTOM_AIRPLANE = 24,
+    MIXER_CUSTOM_TRI = 25
 } mixerMode_e;
 
 // Custom mixer data per motor
-typedef struct motorMixer_t {
+typedef struct motorMixer_s {
     float throttle;
     float roll;
     float pitch;
@@ -41,7 +62,7 @@ typedef struct motorMixer_t {
 } motorMixer_t;
 
 // Custom mixer configuration
-typedef struct mixer_t {
+typedef struct mixer_s {
     uint8_t motorCount;
     uint8_t useServo;
     const motorMixer_t *motor;
@@ -65,7 +86,7 @@ typedef struct flight3DConfig_s {
     uint16_t deadband3d_throttle;           // default throttle deadband from MIDRC
 } flight3DConfig_t;
 
-typedef struct airplaneConfig_t {
+typedef struct airplaneConfig_s {
     int8_t fixedwing_althold_dir;           // +1 or -1 for pitch/althold gain. later check if need more than just sign
 } airplaneConfig_t;
 
@@ -97,17 +118,39 @@ enum {
 typedef enum {
     SERVO_GIMBAL_PITCH = 0,
     SERVO_GIMBAL_ROLL = 1,
-    SERVO_COAXILDUAL_1 = 2,
-    SERVO_COAXILDUAL_2 = 3,
-    SERVO_COAXILDUAL_3 = 4,
-    SERVO_COAXILDUAL_4 = 5
+    SERVO_ELEVATOR = 2,
+    SERVO_FLAPPERON_1 = 3,
+    SERVO_FLAPPERON_2 = 4,
+    SERVO_RUDDER = 5,
+    SERVO_THROTTLE = 6, // for internal combustion (IC) planes
+    SERVO_FLAPS = 7,
+
+    SERVO_BICOPTER_LEFT = 4,
+    SERVO_BICOPTER_RIGHT = 5,
+
+    SERVO_DUALCOPTER_LEFT = 4,
+    SERVO_DUALCOPTER_RIGHT = 5,
+
+    SERVO_SINGLECOPTER_1 = 3,
+    SERVO_SINGLECOPTER_2 = 4,
+    SERVO_SINGLECOPTER_3 = 5,
+    SERVO_SINGLECOPTER_4 = 6,
 
 } servoIndex_e; // FIXME rename to servoChannel_e
 
-#define SERVO_COAXILDUAL_INDEX_MIN SERVO_COAXILDUAL_1
-#define SERVO_COAXILDUAL_INDEX_MAX SERVO_COAXILDUAL_4
+#define SERVO_PLANE_INDEX_MIN SERVO_ELEVATOR
+#define SERVO_PLANE_INDEX_MAX SERVO_FLAPS
 
-typedef struct servoMixer_t {
+#define SERVO_DUALCOPTER_INDEX_MIN SERVO_DUALCOPTER_LEFT
+#define SERVO_DUALCOPTER_INDEX_MAX SERVO_DUALCOPTER_RIGHT
+
+#define SERVO_SINGLECOPTER_INDEX_MIN SERVO_SINGLECOPTER_1
+#define SERVO_SINGLECOPTER_INDEX_MAX SERVO_SINGLECOPTER_4
+
+#define SERVO_FLAPPERONS_MIN SERVO_FLAPPERON_1
+#define SERVO_FLAPPERONS_MAX SERVO_FLAPPERON_2
+
+typedef struct servoMixer_s {
     uint8_t targetChannel;                  // servo that receives the output of the rule
     uint8_t inputSource;                    // input channel for this rule
     int8_t rate;                            // range [-125;+125] ; can be used to adjust a rate 0-125% and a direction
@@ -122,12 +165,12 @@ typedef struct servoMixer_t {
 #define MAX_SERVO_BOXES 3
 
 // Custom mixer configuration
-typedef struct mixerRules_t {
+typedef struct mixerRules_s {
     uint8_t servoRuleCount;
     const servoMixer_t *rule;
 } mixerRules_t;
 
-typedef struct servoParam_t {
+typedef struct servoParam_s {
     int16_t min;                            // servo min
     int16_t max;                            // servo max
     int16_t middle;                         // servo middle
@@ -151,16 +194,19 @@ void filterServos(void);
 extern int16_t motor[MAX_SUPPORTED_MOTORS];
 extern int16_t motor_disarmed[MAX_SUPPORTED_MOTORS];
 
+struct escAndServoConfig_s;
+struct rxConfig_s;
+
 void mixerUseConfigs(
 #ifdef USE_SERVOS
         servoParam_t *servoConfToUse,
         struct gimbalConfig_s *gimbalConfigToUse,
 #endif
         flight3DConfig_t *flight3DConfigToUse,
-		struct escAndServoConfig_s *escAndServoConfigToUse,
+        struct escAndServoConfig_s *escAndServoConfigToUse,
         mixerConfig_t *mixerConfigToUse,
         airplaneConfig_t *airplaneConfigToUse,
-		struct rxConfig_s *rxConfigToUse);
+        struct rxConfig_s *rxConfigToUse);
 
 void writeAllMotors(int16_t mc);
 void mixerLoadMix(int index, motorMixer_t *customMixers);
