@@ -5,6 +5,8 @@
 #ifndef _HELI_H_
 #define _HELI_H_
 
+#include <stdint.h>
+
 // maximum number of swashplate servos
 #define HELI_NUM_SWASHPLATE_SERVOS  4
 
@@ -68,13 +70,14 @@ public:
     _rsc_runup_increment(0.0f),
     _rotor_speed_estimate(0.0f),
     _dt(0.01f),
-    _delta_phase_angle(0),
-    _servo_manual(false)
+    _delta_phase_angle(0)
   {
     // initialise flags
     _heliflags.swash_initialised = 0;
     _heliflags.landing_collective = 0;
     _heliflags.motor_runup_complete = 0;
+
+    _servo_manual = false;
   };
 
   //heli_init

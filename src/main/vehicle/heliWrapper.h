@@ -14,7 +14,7 @@ extern void heli_set_servo_manual(struct heli_s *pHeli, bool servo_manual);
 extern bool heli_get_servo_manual(struct heli_s *pHeli);
 
 #ifdef __cplusplus
-};
+}
 #endif
 
 #endif

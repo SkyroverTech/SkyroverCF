@@ -11,6 +11,10 @@
 # The target to build, see VALID_TARGETS below
 TARGET		= NAZE
 
+# The target mixer may be : MIXER_QUADX or MIXER_COAXIAL
+# TARGET_MIXER = MIXER_QUADX
+TARGET_MIXER = MIXER_COAXIAL
+
 # Compile-time options
 OPTIONS		?=
 
@@ -47,6 +51,7 @@ LINKER_DIR	 = $(ROOT)/src/main/target
 # Search path for sources
 VPATH		:= $(SRC_DIR):$(SRC_DIR)/startup
 CSOURCES        := $(shell find $(SRC_DIR) -name '*.c')
+CPPSOURCES      := $(shell find $(SRC_DIR) -name '*.cpp')
 STDPERIPH_DIR	 = $(ROOT)/lib/main/STM32F10x_StdPeriph_Driver
 STDPERIPH_SRC = $(notdir $(wildcard $(STDPERIPH_DIR)/src/*.c))
 EXCLUDES	= stm32f10x_crc.c \
@@ -168,8 +173,14 @@ NAZE_SRC	 = startup_stm32f10x_md_gcc.S \
 		   drivers/timer_stm32f10x.c \
 		   io/flashfs.c \
 		   hardware_revision.c \
-		   $(HIGHEND_SRC) \
-		   $(COMMON_SRC)
+		   $(HIGHEND_SRC)
+
+ifeq ($(TARGET_MIXER),MIXER_COAXIAL)
+NAZE_SRC	+=	vehicle/heli.cpp \
+							vehicle/heliWrapper.cpp
+endif
+
+NAZE_SRC	+=	$(COMMON_SRC)
 
 # Search path and source files for the ST stdperiph library
 VPATH		:= $(VPATH):$(STDPERIPH_DIR)/src
@@ -178,6 +189,7 @@ VPATH		:= $(VPATH):$(STDPERIPH_DIR)/src
 # Tools
 ###############################################################################
 CC		 = arm-none-eabi-gcc
+CXX		 = arm-none-eabi-g++
 OBJCOPY		 = arm-none-eabi-objcopy
 SIZE		 = arm-none-eabi-size
 
@@ -211,6 +223,24 @@ CFLAGS		 = $(ARCH_FLAGS) \
 		   -save-temps=obj \
 		   -MMD -MP
 
+CXXFLAGS		 = $(ARCH_FLAGS) \
+			 $(LTO_FLAGS) \
+			 $(addprefix -D,$(OPTIONS)) \
+			 $(addprefix -I,$(INCLUDE_DIRS)) \
+			 $(DEBUG_FLAGS) \
+			 -std=gnu++98 \
+			 -Wall -Wextra -Wunsafe-loop-optimizations -Wdouble-promotion \
+			 -ffunction-sections \
+			 -fdata-sections \
+			 $(DEVICE_FLAGS) \
+			 -DUSE_STDPERIPH_DRIVER \
+			 $(TARGET_FLAGS) \
+			 -D'__FORKNAME__="$(FORKNAME)"' \
+			 -D'__TARGET__="$(TARGET)"' \
+			 -D'__REVISION__="$(REVISION)"' \
+			 -save-temps=obj \
+			 -MMD -MP
+
 ASFLAGS		 = $(ARCH_FLAGS) \
 		   -x assembler-with-cpp \
 		   $(addprefix -I,$(INCLUDE_DIRS)) \
@@ -233,7 +263,7 @@ LDFLAGS		 = -lm \
 # No user-serviceable parts below
 ###############################################################################
 
-CPPCHECK         = cppcheck $(CSOURCES) --enable=all --platform=unix64 \
+CPPCHECK         = cppcheck $(CSOURCES) $(CPPSOURCES) --enable=all --platform=unix64 \
 		   --std=c99 --inline-suppr --quiet --force \
 		   $(addprefix -I,$(INCLUDE_DIRS)) \
 		   -I/usr/include -I/usr/include/linux
@@ -260,12 +290,19 @@ $(TARGET_BIN): $(TARGET_ELF)
 	$(OBJCOPY) -O binary $< $@
 
 $(TARGET_ELF):  $(TARGET_OBJS)
+ifneq ($(TARGET_MIXER),MIXER_COAXIAL)
 	$(CC) -o $@ $^ $(LDFLAGS)
+else
+	$(CC) -o $@ $^ $(LDFLAGS) -lstdc++
+endif
 	$(SIZE) $(TARGET_ELF)
-
 ###############################################################################
 # Compile
 ###############################################################################
+$(OBJECT_DIR)/$(TARGET)/%.o: %.cpp
+	@mkdir -p $(dir $@)
+	@echo %% $(notdir $<)
+	@$(CXX) -c -o $@ $(CXXFLAGS) $<
 
 $(OBJECT_DIR)/$(TARGET)/%.o: %.c
 	@mkdir -p $(dir $@)
@@ -285,7 +322,6 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.S
 ###############################################################################
 # Make options
 ###############################################################################
-
 clean:
 	rm -f $(TARGET_BIN) $(TARGET_HEX) $(TARGET_ELF) $(TARGET_OBJS) $(TARGET_MAP)
 	rm -rf $(BIN_DIR)
@@ -312,10 +348,10 @@ unbrick_$(TARGET): $(TARGET_HEX)
 unbrick: unbrick_$(TARGET)
 
 ## cppcheck    : run static analysis on C source code
-cppcheck: $(CSOURCES)
+cppcheck: $(CSOURCES)	$(CPPSOURCES)
 	$(CPPCHECK)
 
-cppcheck-result.xml: $(CSOURCES)
+cppcheck-result.xml: $(CSOURCES)	$(CPPSOURCES)
 	$(CPPCHECK) --xml-version=2 2> cppcheck-result.xml
 
 help:

@@ -107,7 +107,7 @@ void Heli::calculate_roll_pitch_collective_factors()
 }
 
 // reset_swash - free up swash for maximum movements. Used for set-up
-void AP_MotorsHeli::reset_swash(){
+void Heli::reset_swash(){
 
   // calculate factors based on swash type and servo position
   calculate_roll_pitch_collective_factors();
@@ -140,7 +140,7 @@ void Heli::move_swash(int16_t roll_out, int16_t pitch_out, int16_t yaw_out, int1
     }
     // To-Do:  This equation seems to be wrong.  It probably restricts swash movement so that swash setup doesn't work right.
     // _collective_scalar should probably not be used or set to 1?
-    coll_out_scaled = coll_in * _collective_scalar + _rc_throttle.radio_min - 1000;
+    coll_out_scaled = coll_in * _collective_scalar; //+ _rc_throttle.radio_min - 1000;
   }else{      // regular flight mode
     // check if we need to reinitialise the swash
     if (!_heliflags.swash_initialised) {

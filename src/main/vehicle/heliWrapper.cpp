@@ -18,6 +18,7 @@ void heli_Init(heli_t *pHeli){
 }
 
 void heli_set_servo_manual(struct heli_s *pHeli, bool servo_manual){
+  if(servo_manual)
     pHeli->heli.set_servo_manual();
 }
 
@@ -29,8 +30,6 @@ void heli_output_min(struct heli_s *pHeli){
   pHeli->heli.output_min();
 }
 
-
-
 #ifdef __cplusplus
-};
+}
 #endif
