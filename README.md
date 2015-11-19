@@ -2,9 +2,22 @@
 
 [![build status](https://travis-ci.org/SkyroverTech/SkyroverCF.svg?branch=master)](https://travis-ci.org/SkyroverTech/SkyroverCF)
 
-This is a Cleanflight repo for Naze32 Rev5 only.
+This is a Cleanflight repo for Naze32 only.
 
-# 文件结构
+# Install
+
+- make
+
+# Clean
+
+- make clean
+
+# Code check
+
+- ./configure
+- make cppcheck
+
+# Project structure
 
 + lib文件夹：存放STM32的基本驱动，没必要看。
 + obj文件夹：存放编译好的固件hex文件以及编译产生的中间文件，没必要看。
@@ -28,8 +41,6 @@ This is a Cleanflight repo for Naze32 Rev5 only.
 	+ mw文件：从MWC移植过来的，飞控的主循环在此 
 	+ platform文件：MCU芯片相关 
 	+ version文件：记录飞控程序编译的版本号 
-
-[OneNote笔记](http://1drv.ms/1W1n4xM)
 
 # License
 

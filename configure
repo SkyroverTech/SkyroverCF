@@ -1,0 +1,17 @@
+## ===================================================================
+## Install cppcheck
+
+if [ `which cppcheck` ]; then
+  #test cppcheck version
+  echo "Testing existing cppcheck version..."
+  currentversion=`cppcheck --version`
+  echo "Detected $currentversion ."
+  echo "cppcheck version is good"
+  CPPCHECK="cppcheck"
+fi
+
+if [ -z $CPPCHECK ]; then
+	cd dev_tools/cppcheck-1.71 && make install CFGDIR=/usr/local/share/cppcheck/
+fi
+
+## ===================================================================

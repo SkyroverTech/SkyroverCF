@@ -288,7 +288,7 @@ $(OBJECT_DIR)/$(TARGET)/%.o: %.S
 
 clean:
 	rm -f $(TARGET_BIN) $(TARGET_HEX) $(TARGET_ELF) $(TARGET_OBJS) $(TARGET_MAP)
-	rm -rf $(OBJECT_DIR)/$(TARGET)
+	rm -rf $(BIN_DIR)
 	cd src/test && $(MAKE) clean || true
 
 flash_$(TARGET): $(TARGET_HEX)
