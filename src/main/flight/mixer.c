@@ -520,9 +520,9 @@ void mixerUsePWMOutputConfiguration(pwmOutputConfiguration_t *pwmOutputConfigura
 {
     UNUSED(pwmOutputConfiguration);
     motorCount = 4;
-#ifdef USE_SERVOS
+    #ifdef USE_SERVOS
     servoCount = 0;
-#endif
+    #endif
 
     uint8_t i;
     for (i = 0; i < motorCount; i++) {
@@ -883,12 +883,12 @@ bool isMixerUsingServos(void)
 
 void filterServos(void)
 {
-#ifdef USE_SERVOS
+    #ifdef USE_SERVOS
     int16_t servoIdx;
 
-#if defined(MIXER_DEBUG)
+    #if defined(MIXER_DEBUG)
     uint32_t startTime = micros();
-#endif
+    #endif
 
     if (mixerConfig->servo_lowpass_enable) {
         for (servoIdx = 0; servoIdx < MAX_SUPPORTED_SERVOS; servoIdx++) {
@@ -898,10 +898,10 @@ void filterServos(void)
             servo[servoIdx] = constrain(servo[servoIdx], servoConf[servoIdx].min, servoConf[servoIdx].max);
         }
     }
-#if defined(MIXER_DEBUG)
+    #if defined(MIXER_DEBUG)
     debug[0] = (int16_t)(micros() - startTime);
-#endif
+    #endif
 
-#endif
+    #endif
 }
 

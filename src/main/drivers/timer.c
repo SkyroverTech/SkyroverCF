@@ -586,55 +586,25 @@ void timerInit(void)
 {
     memset(timerConfig, 0, sizeof (timerConfig));
 
-#ifdef TIMER_APB1_PERIPHERALS
+    #ifdef TIMER_APB1_PERIPHERALS
     RCC_APB1PeriphClockCmd(TIMER_APB1_PERIPHERALS, ENABLE);
-#endif
+    #endif
 
-#ifdef TIMER_APB2_PERIPHERALS
+    #ifdef TIMER_APB2_PERIPHERALS
     RCC_APB2PeriphClockCmd(TIMER_APB2_PERIPHERALS, ENABLE);
-#endif
+    #endif
 
-#ifdef TIMER_AHB_PERIPHERALS
+    #ifdef TIMER_AHB_PERIPHERALS
     RCC_AHBPeriphClockCmd(TIMER_AHB_PERIPHERALS, ENABLE);
-#endif
+    #endif
 
-// initialize timer channel structures
+    // initialize timer channel structures
     for(int i = 0; i < USABLE_TIMER_CHANNEL_COUNT; i++) {
         timerChannelInfo[i].type = TYPE_FREE;
     }
     for(int i = 0; i < USED_TIMER_COUNT; i++) {
         timerInfo[i].priority = ~0;
     }
-}
-
-// finish configuring timers after allocation phase
-// start timers
-// TODO - Work in progress - initialization routine must be modified/verified to start correctly without timers
-void timerStart(void)
-{
-#if 0
-    for(unsigned timer = 0; timer < USED_TIMER_COUNT; timer++) {
-        int priority = -1;
-        int irq = -1;
-        for(unsigned hwc = 0; hwc < USABLE_TIMER_CHANNEL_COUNT; hwc++)
-            if((timerChannelInfo[hwc].type != TYPE_FREE) && (timerHardware[hwc].tim == usedTimers[timer])) {
-                // TODO - move IRQ to timer info
-                irq = timerHardware[hwc].irq;
-            }
-        // TODO - aggregate required timer paramaters
-        configTimeBase(usedTimers[timer], 0, 1);
-        TIM_Cmd(usedTimers[timer],  ENABLE);
-        if(priority >= 0) {  // maybe none of the channels was configured
-            NVIC_InitTypeDef NVIC_InitStructure;
-
-            NVIC_InitStructure.NVIC_IRQChannel = irq;
-            NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = NVIC_SPLIT_PRIORITY_BASE(priority);
-            NVIC_InitStructure.NVIC_IRQChannelSubPriority = NVIC_SPLIT_PRIORITY_SUB(priority);
-            NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-            NVIC_Init(&NVIC_InitStructure);
-        }
-    }
-#endif
 }
 
 /**

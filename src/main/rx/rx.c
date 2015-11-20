@@ -156,11 +156,11 @@ void rxInit(rxConfig_t *rxConfig)
         rcData[0] = rxConfig->rx_min_usec;  //wrong,why not rcData[3]???
     }
 
-#ifdef SERIAL_RX
+    #ifdef SERIAL_RX
     if (feature(FEATURE_RX_SERIAL)) {
         serialRxInit(rxConfig);
     }
-#endif
+    #endif
 
     if (feature(FEATURE_RX_MSP)) {
         rxMspInit(rxConfig, &rxRuntimeConfig, &rcReadRawFunc);
@@ -289,8 +289,7 @@ void updateRx(uint32_t currentTime)
         rxDataReceived = false;
     }
 
-
-#ifdef SERIAL_RX
+    #ifdef SERIAL_RX
     if (feature(FEATURE_RX_SERIAL)) {
         uint8_t frameStatus = serialRxFrameStatus(rxConfig);
 
@@ -299,7 +298,7 @@ void updateRx(uint32_t currentTime)
             rxSignalReceived = (frameStatus & SERIAL_RX_FRAME_FAILSAFE) == 0;
         }
     }
-#endif
+    #endif
 
     if (feature(FEATURE_RX_MSP)) {
         rxDataReceived = rxMspFrameComplete();

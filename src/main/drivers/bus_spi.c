@@ -170,22 +170,22 @@ void initSpi2(void)
 
 bool spiInit(SPI_TypeDef *instance)
 {
-#if (!(defined(USE_SPI_DEVICE_1) && defined(USE_SPI_DEVICE_2)))
+    #if (!(defined(USE_SPI_DEVICE_1) && defined(USE_SPI_DEVICE_2)))
     UNUSED(instance);
-#endif
+    #endif
 
-#ifdef USE_SPI_DEVICE_1
+    #ifdef USE_SPI_DEVICE_1
     if (instance == SPI1) {
         initSpi1();
         return true;
     }
-#endif
-#ifdef USE_SPI_DEVICE_2
+    #endif
+    #ifdef USE_SPI_DEVICE_2
     if (instance == SPI2) {
         initSpi2();
         return true;
     }
-#endif
+    #endif
     return false;
 }
 

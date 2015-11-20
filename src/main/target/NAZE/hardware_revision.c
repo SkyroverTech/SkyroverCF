@@ -74,10 +74,6 @@ uint8_t detectSpiDevice(void)
 
 #endif
 
-void updateHardwareRevision(void)
-{
-}
-
 void spiBusInit(void)
 {
 }

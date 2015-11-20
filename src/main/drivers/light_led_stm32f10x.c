@@ -31,44 +31,44 @@
 
 void ledInit(void)
 {
-#if defined(LED0) || defined(LED1) || defined(LED2)
+    #if defined(LED0) || defined(LED1) || defined(LED2)
     uint32_t i;
 
     struct {
         GPIO_TypeDef *gpio;
         gpio_config_t cfg;
     } gpio_setup[] = {
-#ifdef LED0
+        #ifdef LED0
         {
             .gpio = LED0_GPIO,
             .cfg = { LED0_PIN, Mode_Out_PP, Speed_2MHz }
         },
-#endif
-#ifdef LED1
+        #endif
+        #ifdef LED1
         {
             .gpio = LED1_GPIO,
             .cfg = { LED1_PIN, Mode_Out_PP, Speed_2MHz }
         },
-#endif
-#ifdef LED2
+        #endif
+        #ifdef LED2
         {
             .gpio = LED2_GPIO,
             .cfg = { LED2_PIN, Mode_Out_PP, Speed_2MHz }
         }
-#endif
+        #endif
     };
 
     uint8_t gpio_count = ARRAYLEN(gpio_setup);
 
-#ifdef LED0
+    #ifdef LED0
     RCC_APB2PeriphClockCmd(LED0_PERIPHERAL, ENABLE);
-#endif
-#ifdef LED1
+    #endif
+    #ifdef LED1
     RCC_APB2PeriphClockCmd(LED1_PERIPHERAL, ENABLE);
-#endif
-#ifdef LED2
+    #endif
+    #ifdef LED2
     RCC_APB2PeriphClockCmd(LED2_PERIPHERAL, ENABLE);
-#endif
+    #endif
 
     LED0_OFF;
     LED1_OFF;
@@ -78,6 +78,6 @@ void ledInit(void)
         gpioInit(gpio_setup[i].gpio, &gpio_setup[i].cfg);
     }
 
-#endif
+    #endif
 }
 

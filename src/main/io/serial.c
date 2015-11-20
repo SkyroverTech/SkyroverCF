@@ -254,12 +254,12 @@ serialPort_t *openSerialPort(
     portMode_t mode,
     portOptions_t options)
 {
-#if (!defined(USE_VCP) && !defined(USE_USART1) && !defined(USE_USART2) && !defined(USE_USART3) && !defined(USE_SOFTSERIAL1) && !defined(USE_SOFTSERIAL1))
+    #if (!defined(USE_VCP) && !defined(USE_USART1) && !defined(USE_USART2) && !defined(USE_USART3) && !defined(USE_SOFTSERIAL1) && !defined(USE_SOFTSERIAL1))
     UNUSED(callback);
     UNUSED(baudRate);
     UNUSED(mode);
     UNUSED(options);
-#endif
+    #endif
 
     serialPortUsage_t *serialPortUsage = findSerialPortUsageByIdentifier(identifier);
     if (!serialPortUsage || serialPortUsage->function != FUNCTION_NONE) {
@@ -270,38 +270,38 @@ serialPort_t *openSerialPort(
     serialPort_t *serialPort = NULL;
 
     switch(identifier) {
-#ifdef USE_VCP
+    #ifdef USE_VCP
         case SERIAL_PORT_USB_VCP:
             serialPort = usbVcpOpen();
             break;
-#endif
-#ifdef USE_USART1
+    #endif
+    #ifdef USE_USART1
         case SERIAL_PORT_USART1:
             serialPort = uartOpen(USART1, callback, baudRate, mode, options);
             break;
-#endif
-#ifdef USE_USART2
+    #endif
+    #ifdef USE_USART2
         case SERIAL_PORT_USART2:
             serialPort = uartOpen(USART2, callback, baudRate, mode, options);
             break;
-#endif
-#ifdef USE_USART3
+    #endif
+    #ifdef USE_USART3
         case SERIAL_PORT_USART3:
             serialPort = uartOpen(USART3, callback, baudRate, mode, options);
             break;
-#endif
-#ifdef USE_SOFTSERIAL1
+    #endif
+    #ifdef USE_SOFTSERIAL1
         case SERIAL_PORT_SOFTSERIAL1:
             serialPort = openSoftSerial(SOFTSERIAL1, callback, baudRate, options);
             serialSetMode(serialPort, mode);
             break;
-#endif
-#ifdef USE_SOFTSERIAL2
+    #endif
+    #ifdef USE_SOFTSERIAL2
         case SERIAL_PORT_SOFTSERIAL2:
             serialPort = openSoftSerial(SOFTSERIAL2, callback, baudRate, options);
             serialSetMode(serialPort, mode);
             break;
-#endif
+    #endif
         default:
             break;
     }
@@ -347,12 +347,12 @@ void serialInit(serialConfig_t *initialSerialConfig, bool softserialEnabled)
 
         if (!softserialEnabled) {
             if (0
-#ifdef USE_SOFTSERIAL1
+                #ifdef USE_SOFTSERIAL1
                 || serialPortUsageList[index].identifier == SERIAL_PORT_SOFTSERIAL1
-#endif
-#ifdef USE_SOFTSERIAL2
+                #endif
+                #ifdef USE_SOFTSERIAL2
                 || serialPortUsageList[index].identifier == SERIAL_PORT_SOFTSERIAL2
-#endif
+                #endif
             ) {
                 serialPortUsageList[index].identifier = SERIAL_PORT_NONE;
                 serialPortCount--;
@@ -388,13 +388,13 @@ bool serialIsPortAvailable(serialPortIdentifier_e identifier)
 
 void handleSerial(void)
 {
-#ifdef USE_CLI
+    #ifdef USE_CLI
     // in cli mode, all serial stuff goes to here. enter cli mode by sending #
     if (cliMode) {
         cliProcess();
         return;
     }
-#endif
+    #endif
 
     mspProcess();
 }
@@ -410,13 +410,13 @@ void cliEnter(serialPort_t *serialPort);
 
 void evaluateOtherData(serialPort_t *serialPort, uint8_t receivedChar)
 {
-#ifndef USE_CLI
+    #ifndef USE_CLI
     UNUSED(serialPort);
-#else
+    #else
     if (receivedChar == '#') {
         cliEnter(serialPort);
     }
-#endif
+    #endif
     if (receivedChar == serialConfig->reboot_character) {
         //Mine
         //I don't know why, but if you want to use "R" to reboot system, do it!

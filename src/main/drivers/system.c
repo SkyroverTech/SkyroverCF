@@ -120,10 +120,10 @@ void systemInit(void)
     // Configure NVIC preempt/priority groups
     NVIC_PriorityGroupConfig(NVIC_PRIORITY_GROUPING);
 
-#ifdef STM32F10X
+    #ifdef STM32F10X
     // Turn on clocks for stuff we use
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
-#endif
+    #endif
 
     // cache RCC->CSR value to use it in isMPUSoftreset() and others
     cachedRccCsrValue = RCC->CSR;
@@ -133,11 +133,11 @@ void systemInit(void)
     enableGPIOPowerUsageAndNoiseReductions();
 
 
-#ifdef STM32F10X
+    #ifdef STM32F10X
     // Turn off JTAG port 'cause we're using the GPIO for leds
-#define AFIO_MAPR_SWJ_CFG_NO_JTAG_SW            (0x2 << 24)
+    #define AFIO_MAPR_SWJ_CFG_NO_JTAG_SW            (0x2 << 24)
     AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_NO_JTAG_SW;
-#endif
+    #endif
 
     // Init cycle counter
     cycleCounterInit();
@@ -148,39 +148,11 @@ void systemInit(void)
     SysTick_Config(SystemCoreClock / 1000);
 }
 
-#if 1
 void delayMicroseconds(uint32_t us)
 {
     uint32_t now = micros();
     while (micros() - now < us);
 }
-#else
-void delayMicroseconds(uint32_t us)
-{
-    uint32_t elapsed = 0;
-    uint32_t lastCount = SysTick->VAL;
-
-    for (;;) {
-        register uint32_t current_count = SysTick->VAL;
-        uint32_t elapsed_us;
-
-        // measure the time elapsed since the last time we checked
-        elapsed += current_count - lastCount;
-        lastCount = current_count;
-
-        // convert to microseconds
-        elapsed_us = elapsed / usTicks;
-        if (elapsed_us >= us)
-            break;
-
-        // reduce the delay by the elapsed time
-        us -= elapsed_us;
-
-        // keep fractional microseconds for the next iteration
-        elapsed %= usTicks;
-    }
-}
-#endif
 
 void delay(uint32_t ms)
 {

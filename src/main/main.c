@@ -150,6 +150,7 @@ void init(void)
 
     detectHardwareRevision();
 
+    //hardware system init
     systemInit();
 
     // Latch active features to be used for feature() in the remainder of init().
@@ -252,9 +253,6 @@ void init(void)
     spiInit(SPI1);
     spiInit(SPI2);
 
-    updateHardwareRevision();
-
-
     serialRemovePort(SERIAL_PORT_USART3);
 
     i2cInit(I2C_DEVICE);
@@ -343,16 +341,13 @@ void init(void)
 
     previousTime = micros();
 
+    // CalibrationCycles
     if (masterConfig.mixerMode == MIXER_GIMBAL) {
         accSetCalibrationCycles(CALIBRATING_ACC_CYCLES);
     }
     gyroSetCalibrationCycles(CALIBRATING_GYRO_CYCLES);
 
     baroSetCalibrationCycles(CALIBRATING_BARO_CYCLES);
-
-    // start all timers
-    // TODO - not implemented yet
-    timerStart();
 
     ENABLE_STATE(SMALL_ANGLE);
     DISABLE_ARMING_FLAG(PREVENT_ARMING);
@@ -375,12 +370,14 @@ void init(void)
 }
 
 int main(void) {
+    //system init
     init();
-    //Mine
+
     printf("\r\n");
     printf("Init Finished!\r\n");
     printf("System Init need %d ms\r\n", millis());
     
+    //main loop
     while (1) {
         loop();
     }

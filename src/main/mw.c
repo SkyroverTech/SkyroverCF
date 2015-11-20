@@ -178,6 +178,7 @@ void annexCode(void)
 
     static uint32_t vbatLastServiced = 0;
     static uint32_t ibatLastServiced = 0;
+
     // PITCH & ROLL only dynamic PID adjustment,  depending on throttle value
     if (rcData[THROTTLE] < currentControlRateProfile->tpa_breakpoint) {
         prop2 = 100;
@@ -451,7 +452,6 @@ typedef enum {
 
 #define PERIODIC_TASK_COUNT (UPDATE_DISPLAY_TASK + 1)
 
-
 void executePeriodicTasks(void)
 {
     static int periodicTaskIndex = 0;
@@ -724,7 +724,9 @@ void loop(void)
     }
 
     currentTime = micros();
+
     if (masterConfig.looptime == 0 || (int32_t)(currentTime - loopTime) >= 0) {
+
         loopTime = currentTime + masterConfig.looptime;
 
         imuUpdate(&currentProfile->accelerometerTrims);
@@ -745,6 +747,7 @@ void loop(void)
         }
 
         annexCode();
+        
         #if defined(BARO) || defined(SONAR)
         haveProcessedAnnexCodeOnce = true;
         #endif

@@ -544,18 +544,18 @@ reset:
 static void serializeDataflashSummaryReply(void)
 {
     headSerialReply(1 + 3 * 4);
-#ifdef USE_FLASHFS
+    #ifdef USE_FLASHFS
     const flashGeometry_t *geometry = flashfsGetGeometry();
     serialize8(flashfsIsReady() ? 1 : 0);
     serialize32(geometry->sectors);
     serialize32(geometry->totalSize);
     serialize32(flashfsGetOffset()); // Effectively the current number of bytes stored on the volume
-#else
+    #else
     serialize8(0);
     serialize32(0);
     serialize32(0);
     serialize32(0);
-#endif
+    #endif
 }
 
 #ifdef USE_FLASHFS
@@ -654,20 +654,20 @@ void mspInit(serialConfig_t *serialConfig)
     if (feature(FEATURE_SERVO_TILT))
         activeBoxIds[activeBoxIdCount++] = BOXCAMSTAB;
 
-#ifdef GPS
+    #ifdef GPS
     if (feature(FEATURE_GPS)) {
         activeBoxIds[activeBoxIdCount++] = BOXGPSHOME;
         activeBoxIds[activeBoxIdCount++] = BOXGPSHOLD;
     }
-#endif
+    #endif
 
     activeBoxIds[activeBoxIdCount++] = BOXBEEPERON;
 
-#ifdef LED_STRIP
+    #ifdef LED_STRIP
     if (feature(FEATURE_LED_STRIP)) {
         activeBoxIds[activeBoxIdCount++] = BOXLEDLOW;
     }
-#endif
+    #endif
 
     if (feature(FEATURE_INFLIGHT_ACC_CAL))
         activeBoxIds[activeBoxIdCount++] = BOXCALIB;
@@ -677,19 +677,19 @@ void mspInit(serialConfig_t *serialConfig)
     if (feature(FEATURE_TELEMETRY) && masterConfig.telemetryConfig.telemetry_switch)
         activeBoxIds[activeBoxIdCount++] = BOXTELEMETRY;
 
-#ifdef AUTOTUNE
+    #ifdef AUTOTUNE
     activeBoxIds[activeBoxIdCount++] = BOXAUTOTUNE;
-#endif
+    #endif
 
     if (feature(FEATURE_SONAR)){
         activeBoxIds[activeBoxIdCount++] = BOXSONAR;
     }
 
-#ifdef BLACKBOX
+    #ifdef BLACKBOX
     if (feature(FEATURE_BLACKBOX)){
         activeBoxIds[activeBoxIdCount++] = BOXBLACKBOX;
     }
-#endif
+    #endif
 
     if (feature(FEATURE_FAILSAFE)){
         activeBoxIds[activeBoxIdCount++] = BOXFAILSAFE;
