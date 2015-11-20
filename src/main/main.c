@@ -139,8 +139,6 @@ void init(void)
 
     printfSupportInit();
 
-    initEEPROM();
-
     ensureEEPROMContainsValidData();
     readEEPROM();
 
@@ -382,10 +380,7 @@ int main(void) {
     printf("\r\n");
     printf("Init Finished!\r\n");
     printf("System Init need %d ms\r\n", millis());
-
-    printf("#############     Begin Test     ###############\r\n");
-
-    printf("#############      End Test      ###############\r\n");
+    
     while (1) {
         loop();
     }

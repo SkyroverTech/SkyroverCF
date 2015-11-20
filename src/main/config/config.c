@@ -703,10 +703,6 @@ void validateAndFixConfig(void)
     }
 }
 
-void initEEPROM(void)
-{
-}
-
 void readEEPROM(void)
 {
     // Sanity check

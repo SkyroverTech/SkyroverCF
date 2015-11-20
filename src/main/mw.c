@@ -160,11 +160,11 @@ void updateAutotuneState(void)
 
 bool isCalibrating()
 {
-#ifdef BARO
+    #ifdef BARO
     if (sensors(SENSOR_BARO) && !isBaroCalibrationComplete()) {
         return true;
     }
-#endif
+    #endif
 
     // Note: compass calibration is handled completely differently, outside of the main loop, see f.CALIBRATE_MAG
 
@@ -294,17 +294,17 @@ void annexCode(void)
         warningLedUpdate();
     }
 
-#ifdef TELEMETRY
+    #ifdef TELEMETRY
     telemetryCheckState();
-#endif
+    #endif
 
     handleSerial();
 
-#ifdef GPS
+    #ifdef GPS
     if (sensors(SENSOR_GPS)) {
         updateGpsIndicator(currentTime);
     }
-#endif
+    #endif
 
     // Read out gyro temperature. can use it for something somewhere. maybe get MCU temperature instead? lots of fun possibilities.
     if (gyro.temperature)
@@ -316,11 +316,11 @@ void mwDisarm(void)
     if (ARMING_FLAG(ARMED)) {
         DISABLE_ARMING_FLAG(ARMED);
 
-#ifdef BLACKBOX
+        #ifdef BLACKBOX
         if (feature(FEATURE_BLACKBOX)) {
             finishBlackbox();
         }
-#endif
+        #endif
 
         beeper(BEEPER_DISARMING);      // emit disarm tone
     }
@@ -349,7 +349,7 @@ void mwArm(void)
             ENABLE_ARMING_FLAG(ARMED);
             headFreeModeHold = heading;
 
-#ifdef BLACKBOX
+            #ifdef BLACKBOX
             if (feature(FEATURE_BLACKBOX)) {
                 serialPort_t *sharedBlackboxAndMspPort = findSharedSerialPort(FUNCTION_BLACKBOX, FUNCTION_MSP);
                 if (sharedBlackboxAndMspPort) {
@@ -357,18 +357,18 @@ void mwArm(void)
                 }
                 startBlackbox();
             }
-#endif
+            #endif
             disarmAt = millis() + masterConfig.auto_disarm_delay * 1000;   // start disarm timeout, will be extended when throttle is nonzero
 
             //beep to indicate arming
-#ifdef GPS
+            #ifdef GPS
             if (feature(FEATURE_GPS) && STATE(GPS_FIX) && GPS_numSat >= 5)
                 beeper(BEEPER_ARMING_GPS_FIX);
             else
                 beeper(BEEPER_ARMING);
-#else
+            #else
             beeper(BEEPER_ARMING);
-#endif
+            #endif
 
             return;
         }
@@ -434,18 +434,18 @@ void updateMagHold(void)
 }
 
 typedef enum {
-#ifdef MAG
+    #ifdef MAG
     UPDATE_COMPASS_TASK,
-#endif
-#ifdef BARO
+    #endif
+    #ifdef BARO
     UPDATE_BARO_TASK,
-#endif
-#ifdef SONAR
+    #endif
+    #ifdef SONAR
     UPDATE_SONAR_TASK,
-#endif
-#if defined(BARO) || defined(SONAR)
+    #endif
+    #if defined(BARO) || defined(SONAR)
     CALCULATE_ALTITUDE_TASK,
-#endif
+    #endif
     UPDATE_DISPLAY_TASK
 } periodicTasks;
 
@@ -457,52 +457,52 @@ void executePeriodicTasks(void)
     static int periodicTaskIndex = 0;
 
     switch (periodicTaskIndex++) {
-#ifdef MAG
+    #ifdef MAG
     case UPDATE_COMPASS_TASK:
         if (sensors(SENSOR_MAG)) {
             updateCompass(&masterConfig.magZero);
         }
         break;
-#endif
+    #endif
 
-#ifdef BARO
+    #ifdef BARO
     case UPDATE_BARO_TASK:
         if (sensors(SENSOR_BARO)) {
             baroUpdate(currentTime);
         }
         break;
-#endif
+    #endif
 
-#if defined(BARO) || defined(SONAR)
+    #if defined(BARO) || defined(SONAR)
     case CALCULATE_ALTITUDE_TASK:
 
-#if defined(BARO) && !defined(SONAR)
+        #if defined(BARO) && !defined(SONAR)
         if (sensors(SENSOR_BARO) && isBaroReady()) {
-#endif
-#if defined(BARO) && defined(SONAR)
+        #endif
+        #if defined(BARO) && defined(SONAR)
         if ((sensors(SENSOR_BARO) && isBaroReady()) || sensors(SENSOR_SONAR)) {
-#endif
-#if !defined(BARO) && defined(SONAR)
+        #endif
+        #if !defined(BARO) && defined(SONAR)
         if (sensors(SENSOR_SONAR)) {
-#endif
+    #endif
             calculateEstimatedAltitude(currentTime);
         }
         break;
-#endif
-#ifdef SONAR
+    #endif
+    #ifdef SONAR
     case UPDATE_SONAR_TASK:
         if (sensors(SENSOR_SONAR)) {
             sonarUpdate();
         }
         break;
-#endif
-#ifdef DISPLAY
+    #endif
+    #ifdef DISPLAY
     case UPDATE_DISPLAY_TASK:
         if (feature(FEATURE_DISPLAY)) {
             updateDisplay();
         }
         break;
-#endif
+    #endif
     }
 
     if (periodicTaskIndex >= PERIODIC_TASK_COUNT) {
@@ -628,7 +628,7 @@ void processRx(void)
         LED1_OFF;
     }
 
-#ifdef  MAG
+    #ifdef  MAG
     if (sensors(SENSOR_ACC) || sensors(SENSOR_MAG)) {
         if (IS_RC_MODE_ACTIVE(BOXMAG)) {
             if (!FLIGHT_MODE(MAG_MODE)) {
@@ -649,13 +649,13 @@ void processRx(void)
             headFreeModeHold = heading; // acquire new heading
         }
     }
-#endif
+    #endif
 
-#ifdef GPS
+    #ifdef GPS
     if (sensors(SENSOR_GPS)) {
         updateGpsWaypointsAndMode();
     }
-#endif
+    #endif
 
     if (IS_RC_MODE_ACTIVE(BOXPASSTHRU)) {
         ENABLE_FLIGHT_MODE(PASSTHRU_MODE);
@@ -663,7 +663,7 @@ void processRx(void)
         DISABLE_FLIGHT_MODE(PASSTHRU_MODE);
     }
 
-#ifdef TELEMETRY
+    #ifdef TELEMETRY
     if (feature(FEATURE_TELEMETRY)) {
         if ((!masterConfig.telemetryConfig.telemetry_switch && ARMING_FLAG(ARMED)) ||
                 (masterConfig.telemetryConfig.telemetry_switch && IS_RC_MODE_ACTIVE(BOXTELEMETRY))) {
@@ -675,39 +675,39 @@ void processRx(void)
             mspAllocateSerialPorts(&masterConfig.serialConfig);
         }
     }
-#endif
+    #endif
 
 }
 
 void loop(void)
 {
     static uint32_t loopTime;
-#if defined(BARO) || defined(SONAR)
+    #if defined(BARO) || defined(SONAR)
     static bool haveProcessedAnnexCodeOnce = false;
-#endif
+    #endif
 
     updateRx(currentTime);
 
     if (shouldProcessRx(currentTime)) {
         processRx();
 
-#ifdef BARO
+        #ifdef BARO
         // the 'annexCode' initialses rcCommand, updateAltHoldState depends on valid rcCommand data.
         if (haveProcessedAnnexCodeOnce) {
             if (sensors(SENSOR_BARO)) {
                 updateAltHoldState();
             }
         }
-#endif
+        #endif
 
-#ifdef SONAR
+        #ifdef SONAR
         // the 'annexCode' initialses rcCommand, updateAltHoldState depends on valid rcCommand data.
         if (haveProcessedAnnexCodeOnce) {
             if (sensors(SENSOR_SONAR)) {
                 updateSonarAltHoldState();
             }
         }
-#endif
+        #endif
 
     } else {
         // not processing rx this iteration
@@ -716,11 +716,11 @@ void loop(void)
         // if GPS feature is enabled, gpsThread() will be called at some intervals to check for stuck
         // hardware, wrong baud rates, init GPS if needed, etc. Don't use SENSOR_GPS here as gpsThread() can and will
         // change this based on available hardware
-#ifdef GPS
+        #ifdef GPS
         if (feature(FEATURE_GPS)) {
             gpsThread();
         }
-#endif
+        #endif
     }
 
     currentTime = micros();
@@ -745,28 +745,28 @@ void loop(void)
         }
 
         annexCode();
-#if defined(BARO) || defined(SONAR)
+        #if defined(BARO) || defined(SONAR)
         haveProcessedAnnexCodeOnce = true;
-#endif
+        #endif
 
-#ifdef AUTOTUNE
+        #ifdef AUTOTUNE
         updateAutotuneState();
-#endif
+        #endif
 
-#ifdef MAG
+        #ifdef MAG
         if (sensors(SENSOR_MAG)) {
         	updateMagHold();
         }
-#endif
+        #endif
 
-#if defined(BARO) || defined(SONAR)
+        #if defined(BARO) || defined(SONAR)
         if (sensors(SENSOR_BARO) || sensors(SENSOR_SONAR)) {
             if (FLIGHT_MODE(BARO_MODE) || FLIGHT_MODE(SONAR_MODE)) {
                 // applyAltHold(&masterConfig.airplaneConfig);
                 applyAltHold();
             }
         }
-#endif
+        #endif
 
         // If we're armed, at minimum throttle, and we do arming via the
         // sticks, do not process yaw input from the rx.  We do this so the
@@ -780,13 +780,13 @@ void loop(void)
             rcCommand[THROTTLE] += calculateThrottleAngleCorrection(currentProfile->throttle_correction_value);
         }
 
-#ifdef GPS
+        #ifdef GPS
         if (sensors(SENSOR_GPS)) {
             if ((FLIGHT_MODE(GPS_HOME_MODE) || FLIGHT_MODE(GPS_HOLD_MODE)) && STATE(GPS_FIX_HOME)) {
                 updateGpsStateForHomeAndHoldMode();
             }
         }
-#endif
+        #endif
 
         // PID - note this is function pointer set by setPIDController()
         pid_controller(
@@ -799,31 +799,31 @@ void loop(void)
 
         mixTable();
 
-#ifdef USE_SERVOS
+        #ifdef USE_SERVOS
         filterServos();
         writeServos();
-#endif
+        #endif
 
         if (motorControlEnable) {
             writeMotors();
         }
 
-#ifdef BLACKBOX
+        #ifdef BLACKBOX
         if (!cliMode && feature(FEATURE_BLACKBOX)) {
             handleBlackbox();
         }
-#endif
+        #endif
     }
 
-#ifdef TELEMETRY
+    #ifdef TELEMETRY
     if (!cliMode && feature(FEATURE_TELEMETRY)) {
         telemetryProcess(&masterConfig.rxConfig, masterConfig.flight3DConfig.deadband3d_throttle);
     }
-#endif
+    #endif
 
-#ifdef LED_STRIP
+    #ifdef LED_STRIP
     if (feature(FEATURE_LED_STRIP)) {
         updateLedStrip();
     }
-#endif
+    #endif
 }
