@@ -63,5 +63,6 @@ else
 		exit 0;
 	else
 		make -j2
+		cd ./src/test && make test
 	fi
 fi
