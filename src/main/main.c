@@ -102,11 +102,7 @@ void mspInit(serialConfig_t *serialConfig);
 void cliInit(serialConfig_t *serialConfig);
 void failsafeInit(rxConfig_t *intialRxConfig, uint16_t deadband3d_throttle);
 pwmOutputConfiguration_t *pwmInit(drv_pwm_config_t *init);
-#ifdef USE_SERVOS
 void mixerInit(mixerMode_e mixerMode, motorMixer_t *customMotorMixers, servoMixer_t *customServoMixers);
-#else
-void mixerInit(mixerMode_e mixerMode, motorMixer_t *customMotorMixers);
-#endif
 void mixerUsePWMOutputConfiguration(pwmOutputConfiguration_t *pwmOutputConfiguration);
 void rxInit(rxConfig_t *rxConfig);
 void gpsInit(serialConfig_t *serialConfig, gpsConfig_t *initialGpsConfig);
@@ -193,7 +189,7 @@ void init(void)
     }
 
     // when using airplane/wing mixer, servo/motor outputs are remapped
-    if (masterConfig.mixerMode == MIXER_COAXIAL_DUAL)
+    if (masterConfig.mixerMode == MIXER_COAXIAL)
         pwm_params.airplane = true;
     else
         pwm_params.airplane = false;

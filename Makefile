@@ -205,12 +205,11 @@ endif
 
 DEBUG_FLAGS	 = -ggdb3 -DDEBUG
 
-CFLAGS		 = $(ARCH_FLAGS) \
+COMMON_FLAGS = $(ARCH_FLAGS) \
 		   $(LTO_FLAGS) \
 		   $(addprefix -D,$(OPTIONS)) \
 		   $(addprefix -I,$(INCLUDE_DIRS)) \
 		   $(DEBUG_FLAGS) \
-		   -std=gnu99 \
 		   -Wall -Wextra -Wunsafe-loop-optimizations -Wdouble-promotion \
 		   -ffunction-sections \
 		   -fdata-sections \
@@ -220,26 +219,13 @@ CFLAGS		 = $(ARCH_FLAGS) \
 		   -D'__FORKNAME__="$(FORKNAME)"' \
 		   -D'__TARGET__="$(TARGET)"' \
 		   -D'__REVISION__="$(REVISION)"' \
+			 -D'__TARGET_MIXER__=$(TARGET_MIXER)'
 		   -save-temps=obj \
 		   -MMD -MP
 
-CXXFLAGS		 = $(ARCH_FLAGS) \
-			 $(LTO_FLAGS) \
-			 $(addprefix -D,$(OPTIONS)) \
-			 $(addprefix -I,$(INCLUDE_DIRS)) \
-			 $(DEBUG_FLAGS) \
-			 -std=gnu++98 \
-			 -Wall -Wextra -Wunsafe-loop-optimizations -Wdouble-promotion \
-			 -ffunction-sections \
-			 -fdata-sections \
-			 $(DEVICE_FLAGS) \
-			 -DUSE_STDPERIPH_DRIVER \
-			 $(TARGET_FLAGS) \
-			 -D'__FORKNAME__="$(FORKNAME)"' \
-			 -D'__TARGET__="$(TARGET)"' \
-			 -D'__REVISION__="$(REVISION)"' \
-			 -save-temps=obj \
-			 -MMD -MP
+CFLAGS		 = $(COMMON_FLAGS) -std=gnu99
+
+CXXFLAGS		 = $(COMMON_FLAGS) -std=gnu++98
 
 ASFLAGS		 = $(ARCH_FLAGS) \
 		   -x assembler-with-cpp \

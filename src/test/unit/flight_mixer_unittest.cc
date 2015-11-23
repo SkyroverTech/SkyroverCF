@@ -201,46 +201,6 @@ protected:
     }
 };
 
-TEST_F(BasicMixerIntegrationTest, TestTricopterServo)
-{
-    // given
-    rxConfig.midrc = 1500;
-
-    mixerConfig.tri_unarmed_servo = 1;
-
-    withDefaultEscAndServoConfiguration();
-    withDefaultRxConfig();
-
-    servoConf[5].min = DEFAULT_SERVO_MIN;
-    servoConf[5].max = DEFAULT_SERVO_MAX;
-    servoConf[5].middle = DEFAULT_SERVO_MIDDLE;
-    servoConf[5].rate = 100;
-    servoConf[5].forwardFromChannel = CHANNEL_FORWARDING_DISABLED;
-
-    configureMixer();
-
-    mixerInit(MIXER_TRI, customMotorMixer, customServoMixer);
-
-    // and
-    pwmOutputConfiguration_t pwmOutputConfiguration = {
-            .servoCount = 1,
-            .motorCount = 3
-    };
-
-    mixerUsePWMOutputConfiguration(&pwmOutputConfiguration);
-
-    // and
-    axisPID[YAW] = 0;
-
-    // when
-    mixTable();
-    writeServos();
-
-    // then
-    EXPECT_EQ(1, updatedServoCount);
-    EXPECT_EQ(TEST_SERVO_MID, servos[0].value);
-}
-
 TEST_F(BasicMixerIntegrationTest, TestQuadMotors)
 {
     // given
@@ -279,71 +239,28 @@ TEST_F(BasicMixerIntegrationTest, TestQuadMotors)
     EXPECT_EQ(TEST_MIN_COMMAND, motors[3].value);
 }
 
-
-class CustomMixerIntegrationTest : public BasicMixerIntegrationTest {
-protected:
-
-    virtual void SetUp() {
-
-        BasicMixerIntegrationTest::SetUp();
-
-        memset(&servoConf, 0, sizeof(servoConf));
-        for (int i = 0; i < MAX_SUPPORTED_SERVOS; i++) {
-            servoConf[i].min = DEFAULT_SERVO_MIN;
-            servoConf[i].max = DEFAULT_SERVO_MAX;
-            servoConf[i].middle = DEFAULT_SERVO_MIDDLE;
-            servoConf[i].rate = 100;
-            servoConf[i].forwardFromChannel = CHANNEL_FORWARDING_DISABLED;
-        }
-
-        withDefaultEscAndServoConfiguration();
-        withDefaultRxConfig();
-
-        configureMixer();
-
-        memset(&customMotorMixer, 0, sizeof(customMotorMixer));
-        memset(&customServoMixer, 0, sizeof(customServoMixer));
-    }
-};
-
-TEST_F(CustomMixerIntegrationTest, TestCustomMixer)
+TEST_F(BasicMixerIntegrationTest, TestCoaxialMotors)
 {
     // given
-    enum {
-        EXPECTED_SERVOS_TO_MIX_COUNT = 6,
-        EXPECTED_MOTORS_TO_MIX_COUNT = 2
-    };
+    //rxConfig.midrc = 1500;
 
-    servoMixer_t testServoMixer[EXPECTED_SERVOS_TO_MIX_COUNT] = {
-        { SERVO_ELEVATOR, INPUT_STABILIZED_PITCH, 100, 0, 0, 100, 0 },
-        { SERVO_FLAPPERON_1, INPUT_STABILIZED_ROLL,  100, 0, 0, 100, 0 },
-        { SERVO_FLAPPERON_2, INPUT_STABILIZED_ROLL,  100, 0, 0, 100, 0 },
-        { SERVO_RUDDER, INPUT_STABILIZED_YAW,   100, 0, 0, 100, 0 },
-        { SERVO_THROTTLE, INPUT_STABILIZED_THROTTLE, 100, 0, 0, 100, 0 },
-        { SERVO_FLAPS, INPUT_RC_AUX1,  100, 0, 0, 100, 0 },
-    };
-    memcpy(customServoMixer, testServoMixer, sizeof(testServoMixer));
+    withDefaultEscAndServoConfiguration();
+    withDefaultRxConfig();
 
-    static const motorMixer_t testMotorMixer[EXPECTED_MOTORS_TO_MIX_COUNT] = {
-        { 1.0f,  0.0f,  0.0f, -1.0f },          // LEFT
-        { 1.0f,  0.0f,  0.0f,  1.0f },          // RIGHT
-    };
-    memcpy(customMotorMixer, testMotorMixer, sizeof(testMotorMixer));
+    configureMixer();
 
-    mixerInit(MIXER_CUSTOM_AIRPLANE, customMotorMixer, customServoMixer);
+    mixerInit(MIXER_COAXIAL, customMotorMixer, customServoMixer);
 
+    // and
     pwmOutputConfiguration_t pwmOutputConfiguration = {
-            .servoCount = 6,
+            .servoCount = 4,
             .motorCount = 2
     };
 
     mixerUsePWMOutputConfiguration(&pwmOutputConfiguration);
 
     // and
-    rcCommand[THROTTLE] = 1000;
-
-    // and
-    rcData[AUX1] = 2000;
+    memset(rcCommand, 0, sizeof(rcCommand));
 
     // and
     memset(axisPID, 0, sizeof(axisPID));
@@ -352,24 +269,19 @@ TEST_F(CustomMixerIntegrationTest, TestCustomMixer)
 
     // when
     mixTable();
-    writeMotors();
     writeServos();
+    writeMotors();
 
     // then
-    EXPECT_EQ(EXPECTED_MOTORS_TO_MIX_COUNT, updatedMotorCount);
+    EXPECT_EQ(2, updatedMotorCount);
+    EXPECT_EQ(4, updatedServoCount);
 
     EXPECT_EQ(TEST_MIN_COMMAND, motors[0].value);
     EXPECT_EQ(TEST_MIN_COMMAND, motors[1].value);
-
-    EXPECT_EQ(EXPECTED_SERVOS_TO_MIX_COUNT, updatedServoCount);
-
-    EXPECT_EQ(TEST_SERVO_MID, servos[0].value);
-    EXPECT_EQ(TEST_SERVO_MID, servos[1].value);
-    EXPECT_EQ(TEST_SERVO_MID, servos[2].value);
-    EXPECT_EQ(TEST_SERVO_MID, servos[3].value);
-    EXPECT_EQ(1000, servos[4].value); // Throttle
-    EXPECT_EQ(2000, servos[5].value); // Flaps
-
+    EXPECT_EQ(0, servos[0].value);
+    EXPECT_EQ(0, servos[1].value);
+    EXPECT_EQ(0, servos[2].value);
+    EXPECT_EQ(0, servos[3].value);
 }
 
 // STUBS
