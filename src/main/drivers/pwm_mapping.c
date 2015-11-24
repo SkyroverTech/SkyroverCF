@@ -175,12 +175,6 @@ pwmOutputConfiguration_t *pwmInit(drv_pwm_config_t *init)
 
         const timerHardware_t *timerHardwarePtr = &timerHardware[timerIndex];
 
-#ifdef OLIMEXINO_UNCUT_LED2_E_JUMPER
-        // PWM2 is connected to LED2 on the board and cannot be connected unless you cut LED2_E
-        if (timerIndex == PWM2)
-            continue;
-#endif
-
 #ifdef STM32F10X
         // skip UART2 ports
         if (init->useUART2 && (timerIndex == PWM3 || timerIndex == PWM4))

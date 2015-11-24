@@ -253,10 +253,22 @@ $(OBJECT_DIR)/flight_mixer_unittest.o : \
 	@mkdir -p $(dir $@)
 	$(CXX) $(CXX_FLAGS) $(TEST_CFLAGS) -c $(TEST_DIR)/flight_mixer_unittest.cc -o $@
 
+$(OBJECT_DIR)/vehicle/heli.o:
+
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXX_FLAGS) $(TEST_CFLAGS) -c $(USER_DIR)/vehicle/heli.cpp -o $@
+
+$(OBJECT_DIR)/vehicle/heliWrapper.o:
+
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXX_FLAGS) $(TEST_CFLAGS) -c $(USER_DIR)/vehicle/heliWrapper.cpp -o $@
+
 $(OBJECT_DIR)/flight_mixer_unittest : \
 	$(OBJECT_DIR)/flight/mixer.o \
 	$(OBJECT_DIR)/flight_mixer_unittest.o \
 	$(OBJECT_DIR)/common/maths.o \
+	$(OBJECT_DIR)/vehicle/heli.o \
+	$(OBJECT_DIR)/vehicle/heliWrapper.o \
 	$(OBJECT_DIR)/gtest_main.a
 
 	$(CXX) $(CXX_FLAGS) $^ -o $(OBJECT_DIR)/$@

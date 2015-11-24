@@ -7,9 +7,10 @@ extern "C" {
 
 #include "common/maths.h"
 #include "drivers/pwm_output.h"
-#include "rx/rx.h"
+#include "flight/mixer.h"
 
-
+extern int16_t servo[MAX_SUPPORTED_SERVOS];
+extern void pwmWriteServo(uint8_t index, uint16_t value);
 #ifdef __cplusplus
 }
 #endif

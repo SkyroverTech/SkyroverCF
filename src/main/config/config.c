@@ -345,7 +345,8 @@ static void resetConf(void)
     setControlRateProfile(0);
 
     masterConfig.version = EEPROM_CONF_VERSION;
-    masterConfig.mixerMode = MIXER_QUADX;
+    // masterConfig.mixerMode = MIXER_QUADX;
+    masterConfig.mixerMode = __TARGET_MIXER__;
     featureClearAll();
 
 #ifdef BOARD_HAS_VOLTAGE_DIVIDER

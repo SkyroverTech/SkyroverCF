@@ -10,48 +10,48 @@
 // maximum number of swashplate servos
 #define HELI_NUM_SWASHPLATE_SERVOS  4
 
-#define SERVO_COAXILDUAL_1          0
-#define SERVO_COAXILDUAL_2          1
-#define SERVO_COAXILDUAL_3          2
-#define SERVO_COAXILDUAL_4          3
+#define SERVO_1          0
+#define SERVO_2          1
+#define SERVO_3          2
+#define SERVO_4          3
 
-#define MOTOR_ROTOR                 0
-#ifdef USE_TAIL
-#define HELI_NUM_MOTORS             2
-#define MOTOR_TAIL                  1
-#else
-#define HELI_NUM_MOTORS             1
-#endif
-
-// servo position defaults
-#define HELI_SERVO1_POS           -60
-#define HELI_SERVO2_POS           -60
-#define HELI_SERVO3_POS            60
-#define HELI_SERVO4_POS           180
-
-// default swash min and max angles and position
-#define HELI_SWASH_ROLL_MAX       2500
-#define HELI_SWASH_PITCH_MAX      2500
-#define HELI_LOWER_COLLECTIVE_MIN       1250
-#define HELI_LOWER_COLLECTIVE_MAX       1750
-#define HELI_LOWER_COLLECTIVE_MID       1500
-#define HELI_UPPER_COLLECTIVE_MIN       1250
-#define HELI_UPPER_COLLECTIVE_MAX       1750
-
-// swash min and max position while in stabilize mode (as a number from 0 ~ 100)
-#define HELI_MANUAL_COLLECTIVE_MIN    0
-#define HELI_MANUAL_COLLECTIVE_MAX    100
-
-// swash min while landed or landing (as a number from 0 ~ 1000
-#define HELI_LAND_COLLECTIVE_MIN      0
-
-// main rotor speed control
-#define HELI_RSC_MODE_NONE            0       // main rotor ESC is directly connected to receiver, pilot controls ESC speed through transmitter directly
-#define HELI_RSC_MODE_PASSTHROUGH     1       // main rotor ESC is connected to PWM9 (out), pilot desired rotor speed provided by throttle input
-
-// default main rotor ramp up time in seconds
-#define HELI_RSC_RAMP_TIME            1       // 1 second to ramp output to main rotor ESC to full power (most people use exterrnal govenors so we can ramp up quickly)
-#define HELI_RSC_RUNUP_TIME           10      // 10 seconds for rotor to reach full speed
+// #define MOTOR_ROTOR                 0
+// #ifdef USE_TAIL
+// #define HELI_NUM_MOTORS             2
+// #define MOTOR_TAIL                  1
+// #else
+// #define HELI_NUM_MOTORS             1
+// #endif
+//
+// // servo position defaults
+// #define HELI_SERVO1_POS           -60
+// #define HELI_SERVO2_POS           -60
+// #define HELI_SERVO3_POS            60
+// #define HELI_SERVO4_POS           180
+//
+// // default swash min and max angles and position
+// #define HELI_SWASH_ROLL_MAX       2500
+// #define HELI_SWASH_PITCH_MAX      2500
+// #define HELI_LOWER_COLLECTIVE_MIN       1250
+// #define HELI_LOWER_COLLECTIVE_MAX       1750
+// #define HELI_LOWER_COLLECTIVE_MID       1500
+// #define HELI_UPPER_COLLECTIVE_MIN       1250
+// #define HELI_UPPER_COLLECTIVE_MAX       1750
+//
+// // swash min and max position while in stabilize mode (as a number from 0 ~ 100)
+// #define HELI_MANUAL_COLLECTIVE_MIN    0
+// #define HELI_MANUAL_COLLECTIVE_MAX    100
+//
+// // swash min while landed or landing (as a number from 0 ~ 1000
+// #define HELI_LAND_COLLECTIVE_MIN      0
+//
+// // main rotor speed control
+// #define HELI_RSC_MODE_NONE            0       // main rotor ESC is directly connected to receiver, pilot controls ESC speed through transmitter directly
+// #define HELI_RSC_MODE_PASSTHROUGH     1       // main rotor ESC is connected to PWM9 (out), pilot desired rotor speed provided by throttle input
+//
+// // default main rotor ramp up time in seconds
+// #define HELI_RSC_RAMP_TIME            1       // 1 second to ramp output to main rotor ESC to full power (most people use exterrnal govenors so we can ramp up quickly)
+// #define HELI_RSC_RUNUP_TIME           10      // 10 seconds for rotor to reach full speed
 
 /// @class Heli
 class Heli{
@@ -65,11 +65,12 @@ public:
     _collective_out(0),
     _collective_mid_pwm(0),
     _rotor_desired(0),
-    _rotor_out(0),
-    _rsc_ramp_increment(0.0f),
-    _rsc_runup_increment(0.0f),
-    _rotor_speed_estimate(0.0f),
-    _dt(0.01f),
+    _rsc_out(0),
+    _rsc_ramp_increment(0),
+    _rsc_runup_increment(0),
+    _rotor_speed_estimate(0),
+    _tail_out(0),
+    _dt(1),
     _delta_phase_angle(0)
   {
     // initialise flags
@@ -107,43 +108,34 @@ public:
   // // return true if the main rotor is up to speed
   // bool motor_runup_complete() const;
   //
-  // recalc_scalers - recalculates various scalers used.  Should be called at about 1hz to allow users to see effect of changing parameters
-  void recalc_scalers();
-  //
-  // // set_dt for setting main loop rate time
-  // void set_dt(float dt) { _dt = dt; }
-
-private:
-
-  // heli_move_swash - moves swash plate to attitude of parameters passed in
-  void move_swash(int16_t roll_out, int16_t pitch_out, int16_t coll_in, int16_t yaw_out);
-  //
-  // // reset_swash - free up swash for maximum movements. Used for set-up
-  // void reset_swash();
 
   // init_swash - initialise the swash plate
   void init_swash();
 
-  // calculate_roll_pitch_collective_factors - calculate factors based on swash type and servo position
-  void calculate_roll_pitch_collective_factors();
+  // swash_pwms - calc swash plate servo channel pwms
+  void swash_pwms(int16_t roll_in, int16_t pitch_in, int16_t yaw_out, int16_t coll_in);
 
+  // rsc_pwm - calc pwm for rsc motor esc.
+  int16_t rsc_pwm(int16_t rsc_target);
+
+  // tail_pwm - calc pwm for tail motor ESC
+  int16_t tail_pwm(int16_t tail_target);
+
+  // reset some params used in rotor_ramp() when in disarmed state.
+  void rotor_ramp_reset();
+
+private:
   // reset_swash - free up swash for maximum movements. Used for set-up
   void reset_swash();
 
-  // // rsc_control - main function to update values to send to main rotor and tail rotor ESCs
-  // void rsc_control();
-  //
-  // // rotor_ramp - ramps rotor towards target. result put rotor_out and sent to ESC
-  // void rotor_ramp(int16_t rotor_target);
-  //
-  // // tail_ramp - ramps tail motor towards target.
-  // void tail_ramp(int16_t tail_target);
-  //
-  // // return true if the tail rotor is up to speed
-  // bool tail_rotor_runup_complete();
-  //
-  // // write_rsc - outputs pwm onto output rsc channel (ch8).  servo_out parameter is of the range 0 ~ 1000
-  // void write_rsc(int16_t servo_out);
+  // recalc_scalers - recalculates various scalers used.  Should be called at about 1hz to allow users to see effect of changing parameters
+  void recalc_scalers();
+
+  // rotor_ramp - ramps rotor towards target. result put rotor_out
+  int16_t rotor_ramp(int16_t rotor_target, int16_t rotor_out);
+
+  // calculate_roll_pitch_collective_factors - calculate factors based on swash type and servo position
+  void calculate_roll_pitch_collective_factors();
 
   // flags bitmask
   struct heliflags_type {
@@ -177,17 +169,18 @@ private:
   float           _collectiveFactor[HELI_NUM_SWASHPLATE_SERVOS];
   float           _roll_scaler;               // scaler to convert roll input from radio (i.e. -4500 ~ 4500) to max roll range
   float           _pitch_scaler;              // scaler to convert pitch input from radio (i.e. -4500 ~ 4500) to max pitch range
+  float           _yaw_scaler;              // scaler to convert yaw input from radio to max yaw rate
   float           _collective_scalar;         // collective scalar to convert pwm form (i.e. 0 ~ 1000) passed in to actual servo range (i.e 1250~1750 would be 500)
   float           _collective_scalar_manual;  // collective scalar to reduce the range of the collective movement while collective is being controlled manually (i.e. directly by the pilot)
   int16_t         _collective_out;            // actual collective pitch value.  Required by the main code for calculating cruise throttle
   int16_t         _collective_mid_pwm;        // collective mid parameter value converted to pwm form (i.e. 0 ~ 1000)
   int16_t         _rotor_desired;             // latest desired rotor speed from pilot
-  float           _rotor_out;                 // latest output sent to the main rotor or an estimate of the rotors actual speed (whichever is higher) (0 ~ 1000)
-  float           _rsc_ramp_increment;        // the amount we can increase the rotor output during each iteration
-  float           _rsc_runup_increment;       // the amount we can increase the rotor's estimated speed during each iteration
-  float           _rotor_speed_estimate;      // estimated speed of the main rotor (0~1000)
-  float           _tail_out;                  // latest output sent to the main rotor or an estimate of the rotors actual speed (whichever is higher) (0 ~ 1000)
-  float           _dt;                        // main loop time
+  int16_t         _rsc_out;                 // latest output sent to the main rotor or an estimate of the rotors actual speed
+  int16_t         _rsc_ramp_increment;        // the amount we can increase the rotor output during each iteration
+  int16_t         _rsc_runup_increment;       // the amount we can increase the rotor's estimated speed during each iteration
+  int16_t         _rotor_speed_estimate;      // estimated speed of the main rotor (0~1000)
+  int16_t         _tail_out;                  // latest output sent to the main rotor or an estimate of the rotors actual speed (whichever is higher) (0 ~ 1000)
+  int16_t         _dt;                        // main loop time
   int16_t         _delta_phase_angle;         // phase angle dynamic compensation
 };
 #endif
