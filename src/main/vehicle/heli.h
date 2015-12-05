@@ -19,10 +19,10 @@
 typedef enum {
     SERVO_GIMBAL_PITCH = 0,
     SERVO_GIMBAL_ROLL = 1,
-    SERVO_SWASH_1 = 2,
-    SERVO_SWASH_2 = 3,
-    SERVO_SWASH_3 = 4,
-    SERVO_SWASH_4 = 5
+    SERVO_SWASH_1 = 0,
+    SERVO_SWASH_2 = 1,
+    SERVO_SWASH_3 = 2,
+    SERVO_SWASH_4 = 3
 } servoIndex_e;
 
 // servo position defaults
@@ -39,6 +39,9 @@ typedef enum {
 #define HELI_LOWER_COLLECTIVE_MID          0
 
 #define HELI_UPPER_COLLECTIVE_MAX        500
+
+#define HELI_STICK_CENTRAL_POS             0
+#define HELI_SWASH_DEADBAND               20
 //
 // // swash min and max position while in stabilize mode (as a number from 0 ~ 100)
 // #define HELI_MANUAL_COLLECTIVE_MIN    0
@@ -96,6 +99,8 @@ public:
     _roll_max = HELI_SWASH_ROLL_MAX;
     _pitch_max = HELI_SWASH_PITCH_MAX;
     _yaw_rate_max = HELI_UPPER_COLLECTIVE_MAX;
+
+    _swash_db = HELI_SWASH_DEADBAND;
 
   };
 
@@ -174,6 +179,7 @@ private:
   int16_t         _collective_mid;                       // Swash servo position corresponding to zero collective pitch (or zero lift for Assymetrical blades)
   int16_t         _collective_upper_trim_min;            // Lowest possible servo4 position for upper rotor pitch trim
   int16_t         _collective_upper_trim_max;            // Highest possible servo4 position for upper rotor pitch trim
+  int16_t         _swash_db;                             // swashplate will not move when roll/pitch/yaw sticks in central deadband
   int16_t         _phase_angle;                          // Phase angle correction for rotor head.  If pitching the swash forward induces a roll, this can be correct the problem
   uint8_t         _rsc_ramp_time;                      // Time in seconds for the output to the rotor's ESC to reach full speed
   uint8_t         _rsc_runup_time;                     // Time in seconds for the rotor to reach full speed.  Must be longer than _rotor_ramp_time

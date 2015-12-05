@@ -97,10 +97,10 @@ enum {
 typedef enum {
     SERVO_GIMBAL_PITCH = 0,
     SERVO_GIMBAL_ROLL = 1,
-    SERVO_SWASH_1 = 2,
-    SERVO_SWASH_2 = 3,
-    SERVO_SWASH_3 = 4,
-    SERVO_SWASH_4 = 5
+    SERVO_SWASH_1 = 0,
+    SERVO_SWASH_2 = 1,
+    SERVO_SWASH_3 = 2,
+    SERVO_SWASH_4 = 3
 } servoIndex_e; // FIXME rename to servoChannel_e
 
 #define SERVO_COAXILDUAL_INDEX_MIN SERVO_SWASH_1

@@ -132,8 +132,13 @@ void Heli::swash_pwms(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, int16_t
       init_swash();
     }
 
+
+
     // rescale roll_in and pitch-out into the min and max ranges to provide linear motion
     // across the input range instead of stopping when the input hits the constrain value
+    if(roll_in > -_swash_db && roll_in < _swash_db){
+      roll_in = HELI_STICK_CENTRAL_POS;
+    }
     roll_in = roll_in * _roll_scaler;
     if (roll_in < -_roll_max) {
       roll_in = -_roll_max;
@@ -143,6 +148,9 @@ void Heli::swash_pwms(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, int16_t
     }
 
     // scale pitch and update limits
+    if(pitch_in > -_swash_db && pitch_in < _swash_db){
+      pitch_in = HELI_STICK_CENTRAL_POS;
+    }
     pitch_in = pitch_in * _pitch_scaler;
     if (pitch_in < -_pitch_max) {
         pitch_in = -_pitch_max;
@@ -151,6 +159,9 @@ void Heli::swash_pwms(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, int16_t
         pitch_in = _pitch_max;
     }
 
+    if(yaw_in > -_swash_db && yaw_in < _swash_db){
+      yaw_in = HELI_STICK_CENTRAL_POS;
+    }
     yaw_in = yaw_in * _yaw_scaler;
     if(yaw_in < -_yaw_rate_max){
       yaw_in  = -_yaw_rate_max;
