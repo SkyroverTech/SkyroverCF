@@ -123,8 +123,8 @@ static const servoMixer_t servoMixerGimbal[] = {
 static const servoMixer_t servoMixerCoaxil[] = {
     { SERVO_SWASH_1, INPUT_STABILIZED_YAW,  100, 0, 0, 100, 0 },
     { SERVO_SWASH_2, INPUT_STABILIZED_THROTTLE,  100, 0, 0, 100, 0 },
-    { SERVO_SWASH_3, INPUT_STABILIZED_ROLL,   100, 0, 0, 100, 0 },
-    { SERVO_SWASH_4, INPUT_STABILIZED_PITCH, 100, 0, 0, 100, 0 },
+    { SERVO_SWASH_3, INPUT_STABILIZED_THROTTLE,   100, 0, 0, 100, 0 },
+    { SERVO_SWASH_4, INPUT_STABILIZED_THROTTLE, 100, 0, 0, 100, 0 },
 };
 
 
@@ -416,7 +416,7 @@ STATIC_UNIT_TESTED void servoMixer(void)
     input[INPUT_GIMBAL_PITCH] = scaleRange(inclination.values.pitchDeciDegrees, -1800, 1800, -500, +500);
     input[INPUT_GIMBAL_ROLL] = scaleRange(inclination.values.rollDeciDegrees, -1800, 1800, -500, +500);
 
-    input[INPUT_STABILIZED_THROTTLE] = motor[0] - 1000 - 500;  // Since it derives from rcCommand or mincommand and must be [-500:+500]
+    input[INPUT_STABILIZED_THROTTLE] = rcCommand[THROTTLE] - 1000 - 500;  // Since it derives from rcCommand or mincommand and must be [-500:+500]
 
     // center the RC input value around the RC middle value
     // by subtracting the RC middle value from the RC input value, we get:
@@ -461,14 +461,15 @@ STATIC_UNIT_TESTED void servoMixer(void)
     //     }
     // }
 
-    heli_swash_pwms(heli_coaxial, input[INPUT_STABILIZED_ROLL], input[INPUT_STABILIZED_PITCH], input[INPUT_STABILIZED_YAW], input[INPUT_STABILIZED_THROTTLE]);
+    // heli_swash_pwms(heli_coaxial, input[INPUT_STABILIZED_ROLL], input[INPUT_STABILIZED_PITCH], input[INPUT_STABILIZED_YAW], input[INPUT_STABILIZED_THROTTLE]);
+    heli_swash_pwms(heli_coaxial, input[INPUT_RC_ROLL], input[INPUT_RC_PITCH], input[INPUT_RC_YAW], input[INPUT_RC_THROTTLE]);
     for (i = 0; i < servoRuleCount; i++) {
       uint8_t target = currentServoMixer[i].targetChannel;
       uint8_t from = currentServoMixer[i].inputSource;
-      uint16_t servo_width = servoConf[target].max - servoConf[target].min;
-      int16_t min = currentServoMixer[i].min * servo_width / 100 - servo_width / 2;
-      int16_t max = currentServoMixer[i].max * servo_width / 100 - servo_width / 2;
-      servo[target] += servoDirection(target, from) * constrain(((int32_t)servo[target] * currentServoMixer[i].rate) / 100, min, max);
+      uint16_t servo_width = servoConf[target].max - servoConf[target].min;           // 1000
+      int16_t min = currentServoMixer[i].min * servo_width / 100 - servo_width / 2;   // -500
+      int16_t max = currentServoMixer[i].max * servo_width / 100 - servo_width / 2;   // +500
+      servo[target] = servoDirection(target, from) * constrain(((int32_t)servo[target] * currentServoMixer[i].rate) / 100, min, max);
       servo[target] = ((int32_t)servoConf[target].rate * servo[target]) / 100L;
       servo[target] += determineServoMiddleOrForwardFromChannel(target);
     }
@@ -551,8 +552,7 @@ void mixTable(void)
           }
       }
 
-    }
-    else{
+    }else{
       if(ARMING_FLAG(ARMED)){
         motor[0] = heli_rsc_pwm(heli_coaxial, rcCommand[THROTTLE]);
 

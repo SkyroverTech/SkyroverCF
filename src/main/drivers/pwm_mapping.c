@@ -237,11 +237,9 @@ pwmOutputConfiguration_t *pwmInit(drv_pwm_config_t *init)
 
 #ifdef USE_SERVOS
         if (init->useServos && !init->airplane) {
-#if defined(NAZE)
             // remap PWM9+10 as servos
             if ((timerIndex == PWM9 || timerIndex == PWM10) && timerHardwarePtr->tim == TIM1)
                 type = MAP_TO_SERVO_OUTPUT;
-#endif
         }
 
         if (init->useChannelForwarding && !init->airplane) {

@@ -15,28 +15,30 @@
 #define SERVO_3          2
 #define SERVO_4          3
 
-// #define MOTOR_ROTOR                 0
-// #ifdef USE_TAIL
-// #define HELI_NUM_MOTORS             2
-// #define MOTOR_TAIL                  1
-// #else
-// #define HELI_NUM_MOTORS             1
-// #endif
-//
-// // servo position defaults
-// #define HELI_SERVO1_POS           -60
-// #define HELI_SERVO2_POS           -60
-// #define HELI_SERVO3_POS            60
-// #define HELI_SERVO4_POS           180
+// target servo channels
+typedef enum {
+    SERVO_GIMBAL_PITCH = 0,
+    SERVO_GIMBAL_ROLL = 1,
+    SERVO_SWASH_1 = 2,
+    SERVO_SWASH_2 = 3,
+    SERVO_SWASH_3 = 4,
+    SERVO_SWASH_4 = 5
+} servoIndex_e;
+
+// servo position defaults
+#define HELI_SERVO2_POS           180
+#define HELI_SERVO3_POS            60
+#define HELI_SERVO4_POS           -60
 //
 // // default swash min and max angles and position
-// #define HELI_SWASH_ROLL_MAX       2500
-// #define HELI_SWASH_PITCH_MAX      2500
-// #define HELI_LOWER_COLLECTIVE_MIN       1250
-// #define HELI_LOWER_COLLECTIVE_MAX       1750
-// #define HELI_LOWER_COLLECTIVE_MID       1500
-// #define HELI_UPPER_COLLECTIVE_MIN       1250
-// #define HELI_UPPER_COLLECTIVE_MAX       1750
+#define HELI_SWASH_ROLL_MAX             500
+#define HELI_SWASH_PITCH_MAX            500
+
+#define HELI_LOWER_COLLECTIVE_MIN       -500
+#define HELI_LOWER_COLLECTIVE_MAX        500
+#define HELI_LOWER_COLLECTIVE_MID          0
+
+#define HELI_UPPER_COLLECTIVE_MAX        500
 //
 // // swash min and max position while in stabilize mode (as a number from 0 ~ 100)
 // #define HELI_MANUAL_COLLECTIVE_MIN    0
@@ -45,23 +47,22 @@
 // // swash min while landed or landing (as a number from 0 ~ 1000
 // #define HELI_LAND_COLLECTIVE_MIN      0
 //
-// // main rotor speed control
-// #define HELI_RSC_MODE_NONE            0       // main rotor ESC is directly connected to receiver, pilot controls ESC speed through transmitter directly
-// #define HELI_RSC_MODE_PASSTHROUGH     1       // main rotor ESC is connected to PWM9 (out), pilot desired rotor speed provided by throttle input
-//
-// // default main rotor ramp up time in seconds
-// #define HELI_RSC_RAMP_TIME            1       // 1 second to ramp output to main rotor ESC to full power (most people use exterrnal govenors so we can ramp up quickly)
-// #define HELI_RSC_RUNUP_TIME           10      // 10 seconds for rotor to reach full speed
+
+// default main rotor ramp up time in seconds
+#define HELI_ROTOR_RAMP_TIME            1       // 1 second to ramp output to main rotor ESC to full power (most people use exterrnal govenors so we can ramp up quickly)
+#define HELI_ROTOR_RUNUP_TIME           10      // 10 seconds for rotor to reach full speed
 
 /// @class Heli
 class Heli{
 public:
   /// Constructor
   Heli():
-    _roll_scaler(1),
-    _pitch_scaler(1),
-    _collective_scalar(1),
-    _collective_scalar_manual(1),
+    _phase_angle(0),
+    _roll_scaler(1.0f),
+    _pitch_scaler(1.0f),
+    _yaw_scaler(1.0f),
+    _collective_scaler(1.0f),
+    _collective_scaler_manual(1.0f),
     _collective_out(0),
     _collective_mid_pwm(0),
     _rotor_desired(0),
@@ -70,7 +71,6 @@ public:
     _rsc_runup_increment(0),
     _rotor_speed_estimate(0),
     _tail_out(0),
-    _dt(1),
     _delta_phase_angle(0)
   {
     // initialise flags
@@ -79,6 +79,24 @@ public:
     _heliflags.motor_runup_complete = 0;
 
     _servo_manual = false;
+
+    // initialise swash servos position for calculating output factors
+    _servo2_pos = HELI_SERVO2_POS;
+    _servo3_pos = HELI_SERVO3_POS;
+    _servo4_pos = HELI_SERVO4_POS;
+
+    _rsc_ramp_time = HELI_ROTOR_RAMP_TIME;
+    _rsc_runup_time = HELI_ROTOR_RUNUP_TIME;
+
+    _collective_min = HELI_LOWER_COLLECTIVE_MIN;
+    _collective_max = HELI_LOWER_COLLECTIVE_MAX;
+    _collective_mid = HELI_LOWER_COLLECTIVE_MID;
+
+
+    _roll_max = HELI_SWASH_ROLL_MAX;
+    _pitch_max = HELI_SWASH_PITCH_MAX;
+    _yaw_rate_max = HELI_UPPER_COLLECTIVE_MAX;
+
   };
 
   //heli_init
@@ -113,7 +131,7 @@ public:
   void init_swash();
 
   // swash_pwms - calc swash plate servo channel pwms
-  void swash_pwms(int16_t roll_in, int16_t pitch_in, int16_t yaw_out, int16_t coll_in);
+  void swash_pwms(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, int16_t coll_in);
 
   // rsc_pwm - calc pwm for rsc motor esc.
   int16_t rsc_pwm(int16_t rsc_target);
@@ -145,21 +163,20 @@ private:
   } _heliflags;
 
   // parameters
-  int16_t         _servo1_pos;                           // Angular location of swash servo #1
   int16_t         _servo2_pos;                           // Angular location of swash servo #2
   int16_t         _servo3_pos;                           // Angular location of swash servo #3
   int16_t         _servo4_pos;                           // Angular location of swash servo #4
-  int16_t         _roll_max;                             // Maximum roll angle of the swash plate in centi-degrees
-  int16_t         _pitch_max;                            // Maximum pitch angle of the swash plate in centi-degrees
+  int16_t         _roll_max;                             // Maximum roll pwm of the swash plate
+  int16_t         _pitch_max;                            // Maximum pitch pwm of the swash plate
+  int16_t         _yaw_rate_max;                         // Maximum yaw rate of the swash plate
   int16_t         _collective_min;                       // Lowest possible servo position for the swashplate
   int16_t         _collective_max;                       // Highest possible servo position for the swashplate
   int16_t         _collective_mid;                       // Swash servo position corresponding to zero collective pitch (or zero lift for Assymetrical blades)
   int16_t         _collective_upper_trim_min;            // Lowest possible servo4 position for upper rotor pitch trim
   int16_t         _collective_upper_trim_max;            // Highest possible servo4 position for upper rotor pitch trim
   int16_t         _phase_angle;                          // Phase angle correction for rotor head.  If pitching the swash forward induces a roll, this can be correct the problem
-  int16_t         _collective_yaw_effect;                // Feed-forward compensation to automatically add rudder input when collective pitch is increased. Can be positive or negative depending on mechanics.
-  uint8_t         _rsc_ramp_time;                        // Time in seconds for the output to the main rotor's ESC to reach full speed
-  uint8_t         _rsc_runup_time;                       // Time in seconds for the main rotor to reach full speed.  Must be longer than _rsc_ramp_time
+  uint8_t         _rsc_ramp_time;                      // Time in seconds for the output to the rotor's ESC to reach full speed
+  uint8_t         _rsc_runup_time;                     // Time in seconds for the rotor to reach full speed.  Must be longer than _rotor_ramp_time
   int16_t         _land_collective_min;                  // Minimum collective when landed or landing
   bool            _servo_manual;                         // true for passing radio inputs directly to servos during
 
@@ -169,18 +186,17 @@ private:
   float           _collectiveFactor[HELI_NUM_SWASHPLATE_SERVOS];
   float           _roll_scaler;               // scaler to convert roll input from radio (i.e. -4500 ~ 4500) to max roll range
   float           _pitch_scaler;              // scaler to convert pitch input from radio (i.e. -4500 ~ 4500) to max pitch range
-  float           _yaw_scaler;              // scaler to convert yaw input from radio to max yaw rate
-  float           _collective_scalar;         // collective scalar to convert pwm form (i.e. 0 ~ 1000) passed in to actual servo range (i.e 1250~1750 would be 500)
-  float           _collective_scalar_manual;  // collective scalar to reduce the range of the collective movement while collective is being controlled manually (i.e. directly by the pilot)
+  float           _yaw_scaler;              // scaler to convert pitch input from radio to max yaw rate
+  float           _collective_scaler;         // collective scalar to convert pwm form (i.e. 0 ~ 1000) passed in to actual servo range (i.e 1250~1750 would be 500)
+  float           _collective_scaler_manual;  // collective scalar to reduce the range of the collective movement while collective is being controlled manually (i.e. directly by the pilot)
   int16_t         _collective_out;            // actual collective pitch value.  Required by the main code for calculating cruise throttle
-  int16_t         _collective_mid_pwm;        // collective mid parameter value converted to pwm form (i.e. 0 ~ 1000)
+  int16_t         _collective_mid_pwm;        // collective mid parameter value converted to pwm form
   int16_t         _rotor_desired;             // latest desired rotor speed from pilot
   int16_t         _rsc_out;                 // latest output sent to the main rotor or an estimate of the rotors actual speed
   int16_t         _rsc_ramp_increment;        // the amount we can increase the rotor output during each iteration
   int16_t         _rsc_runup_increment;       // the amount we can increase the rotor's estimated speed during each iteration
   int16_t         _rotor_speed_estimate;      // estimated speed of the main rotor (0~1000)
   int16_t         _tail_out;                  // latest output sent to the main rotor or an estimate of the rotors actual speed (whichever is higher) (0 ~ 1000)
-  int16_t         _dt;                        // main loop time
   int16_t         _delta_phase_angle;         // phase angle dynamic compensation
 };
 #endif

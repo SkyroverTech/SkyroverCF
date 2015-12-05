@@ -28,7 +28,7 @@ void Heli::recalc_scalers()
     if (_rsc_ramp_time <= 0) {
         _rsc_ramp_time = 1;
     }
-    _rsc_ramp_increment = 1.0f / (_rsc_ramp_time / _dt);
+    _rsc_ramp_increment = 10 / _rsc_ramp_time;
 
     // recalculate rotor runup increment
     if (_rsc_runup_time <= 0 ) {
@@ -37,7 +37,7 @@ void Heli::recalc_scalers()
     if (_rsc_runup_time < _rsc_ramp_time) {
         _rsc_runup_time = _rsc_ramp_time;
     }
-    _rsc_runup_increment = 1000.0f / (_rsc_runup_time * 100.0f);
+    _rsc_runup_increment = 200 / (_rsc_runup_time);
 }
 
 
@@ -46,38 +46,23 @@ void Heli::recalc_scalers()
 // init_swash - initialise the swash plate
 void Heli::init_swash()
 {
-
-    // swash servo initialisation
-    // _servo_1.set_range(0,1000);
-    // _servo_2.set_range(0,1000);
-    // _servo_3.set_range(0,1000);
-    // _servo_4.set_angle(4500);
-
     // range check collective min, max and mid
     if( _collective_min >= _collective_max ) {
-        _collective_min = 1000;
-        _collective_max = 2000;
+        _collective_min = -500;
+        _collective_max =  500;
     }
     _collective_mid = constrain(_collective_mid, _collective_min, _collective_max);
 
-    // calculate collective mid point as a number from 0 to 1000
+    // calculate collective mid point as a number from -500 to 500
     _collective_mid_pwm = ((float)(_collective_mid-_collective_min))/((float)(_collective_max-_collective_min))*1000.0f;
 
     // determine roll, pitch and collective input scaling
-    _roll_scaler = (float)_roll_max/4500.0f;
-    _pitch_scaler = (float)_pitch_max/4500.0f;
-    _collective_scalar = ((float)(_collective_max-_collective_min))/1000.0f;
+    _roll_scaler = (float)_roll_max/500.0f;
+    _pitch_scaler = (float)_pitch_max/500.0f;
+    _collective_scaler = ((float)(_collective_max-_collective_min))/1000.0f;
 
     // calculate factors based on swash type and servo position
     calculate_roll_pitch_collective_factors();
-
-    // servo min/max values
-    // _servo_1.radio_min = 1000;
-    // _servo_1.radio_max = 2000;
-    // _servo_2.radio_min = 1000;
-    // _servo_2.radio_max = 2000;
-    // _servo_3.radio_min = 1000;
-    // _servo_3.radio_max = 2000;
 
     // mark swash as initialised
     _heliflags.swash_initialised = true;
@@ -95,9 +80,9 @@ void Heli::calculate_roll_pitch_collective_factors()
 
         // pitch factors
         _pitchFactor[SERVO_1] = 0;
-        _pitchFactor[SERVO_2] = cos_approx(degreesToRadians(_servo1_pos - (_phase_angle + _delta_phase_angle)));
-        _pitchFactor[SERVO_3] = cos_approx(degreesToRadians(_servo2_pos - (_phase_angle + _delta_phase_angle)));
-        _pitchFactor[SERVO_4] = cos_approx(degreesToRadians(_servo3_pos - (_phase_angle + _delta_phase_angle)));
+        _pitchFactor[SERVO_2] = cos_approx(degreesToRadians(_servo2_pos - (_phase_angle + _delta_phase_angle)));
+        _pitchFactor[SERVO_3] = cos_approx(degreesToRadians(_servo3_pos - (_phase_angle + _delta_phase_angle)));
+        _pitchFactor[SERVO_4] = cos_approx(degreesToRadians(_servo4_pos - (_phase_angle + _delta_phase_angle)));
 
         // collective factors
         _collectiveFactor[SERVO_1] = 1;
@@ -116,32 +101,31 @@ void Heli::reset_swash(){
   _roll_scaler = 1.0f;
   _pitch_scaler = 1.0f;
   _yaw_scaler = 1.0f;
-  _collective_scalar = 1.0f;//((float)(PWM_RANGE_MAX - PWM_RANGE_MIN))/1000.0f;
-	_collective_scalar_manual = 1.0f;
+  _collective_scaler = 1.0f;
+	_collective_scaler_manual = 1.0f;
 
   // we must be in set-up mode so mark swash as uninitialised
   _heliflags.swash_initialised = false;
 }
 
 //
-// swash_pwms - calc swash plate servo channel pwms
+// swash_pwms - calc swash plate servo output pwms
 //                 - expected ranges:
-//                       roll :
-//                       pitch:
-//                         yaw:
-//                   collective:
+//                       roll : -500~500
+//                       pitch: -500~500
+//                         yaw: -500~500
+//                  collective: -500~500
 //
 void Heli::swash_pwms(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, int16_t coll_in)
 {
-  int16_t coll_out_scaled;
   if (_servo_manual == 1) {      // are we in manual servo mode? (i.e. swash set-up mode)?
     // check if we need to free up the swash
     if (_heliflags.swash_initialised) {
       reset_swash();
     }
     // To-Do:  This equation seems to be wrong.  It probably restricts swash movement so that swash setup doesn't work right.
-    // _collective_scalar should probably not be used or set to 1?
-    coll_out_scaled = coll_in * _collective_scalar; //+ _rc_throttle.radio_min - 1000;
+    // _collective_scaler should probably not be used or set to 1?
+    coll_in = coll_in * _collective_scaler;
   }else{      // regular flight mode
     // check if we need to reinitialise the swash
     if (!_heliflags.swash_initialised) {
@@ -150,9 +134,6 @@ void Heli::swash_pwms(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, int16_t
 
     // rescale roll_in and pitch-out into the min and max ranges to provide linear motion
     // across the input range instead of stopping when the input hits the constrain value
-    // these calculations are based on an assumption of the user specified roll_max and pitch_max
-    // coming into this equation at 4500 or less, and based on the original assumption of the
-    // total _servo_x.servo_out range being -4500 to 4500.
     roll_in = roll_in * _roll_scaler;
     if (roll_in < -_roll_max) {
       roll_in = -_roll_max;
@@ -170,28 +151,34 @@ void Heli::swash_pwms(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, int16_t
         pitch_in = _pitch_max;
     }
 
-    // constrain collective input
-    _collective_out = coll_in;
-    if (_collective_out <= 0) {
-        _collective_out = 0;
+    yaw_in = yaw_in * _yaw_scaler;
+    if(yaw_in < -_yaw_rate_max){
+      yaw_in  = -_yaw_rate_max;
     }
-    if (_collective_out >= 1000) {
-        _collective_out = 1000;
+    if(yaw_in > _yaw_rate_max){
+      yaw_in = _yaw_rate_max;
+    }
+
+    // constrain collective input
+    coll_in = coll_in * _collective_scaler;
+    if(coll_in < -_collective_max){
+      coll_in = -_collective_max;
+    }
+    if(coll_in > _collective_max){
+      coll_in = _collective_max;
     }
 
     // ensure not below landed/landing collective
-    if (_heliflags.landing_collective && _collective_out < _land_collective_min) {
-        _collective_out = _land_collective_min;
-    }
+    // if (_heliflags.landing_collective && _collective_out < _land_collective_min) {
+    //     _collective_out = _land_collective_min;
+    // }
 
-    // scale collective pitch
-    coll_out_scaled = _collective_out * _collective_scalar + _collective_min - 1000;
   }
 
-  servo[2] =  (_rollFactor[SERVO_1] * roll_in) + (_pitchFactor[SERVO_1] * pitch_in) + (_collectiveFactor[SERVO_1] * coll_out_scaled) + yaw_in * _yaw_scaler;
-  servo[3] =  (_rollFactor[SERVO_2] * roll_in) + (_pitchFactor[SERVO_2] * pitch_in) + (_collectiveFactor[SERVO_2] * coll_out_scaled);
-  servo[4] =  (_rollFactor[SERVO_3] * roll_in) + (_pitchFactor[SERVO_3] * pitch_in) + (_collectiveFactor[SERVO_3] * coll_out_scaled);
-  servo[5] =  (_rollFactor[SERVO_4] * roll_in) + (_pitchFactor[SERVO_4] * pitch_in) + (_collectiveFactor[SERVO_4] * coll_out_scaled);
+  servo[SERVO_SWASH_1] =  (_rollFactor[SERVO_1] * roll_in) + (_pitchFactor[SERVO_1] * pitch_in) + (_collectiveFactor[SERVO_1] * coll_in) + yaw_in;
+  servo[SERVO_SWASH_2] =  (_rollFactor[SERVO_2] * roll_in) + (_pitchFactor[SERVO_2] * pitch_in) + (_collectiveFactor[SERVO_2] * coll_in);
+  servo[SERVO_SWASH_3] =  (_rollFactor[SERVO_3] * roll_in) + (_pitchFactor[SERVO_3] * pitch_in) + (_collectiveFactor[SERVO_3] * coll_in);
+  servo[SERVO_SWASH_4] =  (_rollFactor[SERVO_4] * roll_in) + (_pitchFactor[SERVO_4] * pitch_in) + (_collectiveFactor[SERVO_4] * coll_in);
 
 }
 
