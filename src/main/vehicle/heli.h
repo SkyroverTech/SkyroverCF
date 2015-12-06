@@ -31,17 +31,17 @@ typedef enum {
 #define HELI_SERVO4_POS           -60
 //
 // // default swash min and max angles and position
-#define HELI_SWASH_ROLL_MAX             500
-#define HELI_SWASH_PITCH_MAX            500
+#define HELI_SWASH_ROLL_MAX             250
+#define HELI_SWASH_PITCH_MAX            250
 
-#define HELI_LOWER_COLLECTIVE_MIN       -500
-#define HELI_LOWER_COLLECTIVE_MAX        500
+#define HELI_LOWER_COLLECTIVE_MIN       -250
+#define HELI_LOWER_COLLECTIVE_MAX        250
 #define HELI_LOWER_COLLECTIVE_MID          0
 
-#define HELI_UPPER_COLLECTIVE_MAX        500
+#define HELI_UPPER_COLLECTIVE_MAX        250
 
 #define HELI_STICK_CENTRAL_POS             0
-#define HELI_SWASH_DEADBAND               20
+#define HELI_SWASH_DEADBAND               30
 //
 // // swash min and max position while in stabilize mode (as a number from 0 ~ 100)
 // #define HELI_MANUAL_COLLECTIVE_MIN    0

@@ -13,12 +13,15 @@ void Heli::Init(){
 
   // initialise swash plate
   init_swash();
+
+  // init pos of swashplate
+  output_min();
 }
 
 // output_min - sends minimum values out to the motors
 void Heli::output_min(){
   //move swash to mid
-  swash_pwms(0,0,0,0);
+  swash_pwms(0,0,0,_collective_min);
 }
 
 // recalc_scalers - recalculates various scalers used.  Should be called at about 1hz to allow users to see effect of changing parameters
@@ -48,8 +51,8 @@ void Heli::init_swash()
 {
     // range check collective min, max and mid
     if( _collective_min >= _collective_max ) {
-        _collective_min = -500;
-        _collective_max =  500;
+        _collective_min = -250;
+        _collective_max =  250;
     }
     _collective_mid = constrain(_collective_mid, _collective_min, _collective_max);
 
@@ -59,7 +62,8 @@ void Heli::init_swash()
     // determine roll, pitch and collective input scaling
     _roll_scaler = (float)_roll_max/500.0f;
     _pitch_scaler = (float)_pitch_max/500.0f;
-    _collective_scaler = ((float)(_collective_max-_collective_min))/1000.0f;
+    _yaw_scaler = (float)_yaw_rate_max/500.0f;
+    _collective_scaler = ((float)(_collective_max-_collective_min))/500.0f;
 
     // calculate factors based on swash type and servo position
     calculate_roll_pitch_collective_factors();
@@ -132,8 +136,6 @@ void Heli::swash_pwms(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, int16_t
       init_swash();
     }
 
-
-
     // rescale roll_in and pitch-out into the min and max ranges to provide linear motion
     // across the input range instead of stopping when the input hits the constrain value
     if(roll_in > -_swash_db && roll_in < _swash_db){
@@ -183,7 +185,6 @@ void Heli::swash_pwms(int16_t roll_in, int16_t pitch_in, int16_t yaw_in, int16_t
     // if (_heliflags.landing_collective && _collective_out < _land_collective_min) {
     //     _collective_out = _land_collective_min;
     // }
-
   }
 
   servo[SERVO_SWASH_1] =  (_rollFactor[SERVO_1] * roll_in) + (_pitchFactor[SERVO_1] * pitch_in) + (_collectiveFactor[SERVO_1] * coll_in) + yaw_in;
