@@ -273,7 +273,13 @@ int16_t Heli::rsc_pwm(int16_t rsc_target){
   @return -
 **/
 int16_t Heli::tail_pwm(int16_t tail_target){
-  _tail_out = rotor_ramp(tail_target, _tail_out);
+  int16_t _tail_target;
+  if(tail_target > 1500){
+    tail_target = 1500;
+  }
+  _tail_target = scaleRange(ABS(tail_target - 1500),0,500,0,1000);
 
-  return _tail_out;
+  _tail_out = rotor_ramp(_tail_target, _tail_out);
+
+  return (_tail_out + 1000);
 }

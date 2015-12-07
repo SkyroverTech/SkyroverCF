@@ -557,7 +557,7 @@ void mixTable(void)
         motor[0] = heli_rsc_pwm(heli_coaxial, rcCommand[THROTTLE]);
 
         #ifdef USE_TAIL
-          motor[1] = heli_tail_pwm(heli_coaxial, axisPID[PITCH]);
+          motor[1] = heli_tail_pwm(heli_coaxial, rcData[PITCH]);
         #endif
 
         bool isFailsafeActive = failsafeIsActive();
@@ -584,10 +584,6 @@ void mixTable(void)
                   }
               }
           }
-        }
-
-        if(rcData[PITCH] < rxConfig->midrc){
-          motor[1] = escAndServoConfig->mincommand;
         }
       }else{
         for (i = 0; i < motorCount; i++) {

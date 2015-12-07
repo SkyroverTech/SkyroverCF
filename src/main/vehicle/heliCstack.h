@@ -11,6 +11,7 @@ extern "C" {
 
 extern int16_t servo[MAX_SUPPORTED_SERVOS];
 extern void pwmWriteServo(uint8_t index, uint16_t value);
+extern int scaleRange(int x, int srcMin, int srcMax, int destMin, int destMax);
 #ifdef __cplusplus
 }
 #endif
